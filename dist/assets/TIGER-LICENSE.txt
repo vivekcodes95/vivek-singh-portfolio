@@ -1,0 +1,11 @@
+Tiger by Nyilonelycompany
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+Original: https://sketchfab.com/3d-models/tiger-51ed5186afb04487ae6adb51f8ffd09b
+Archived asset: https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-157/51ed5186afb04487ae6adb51f8ffd09b.glb
+Archived metadata: https://huggingface.co/datasets/allenai/objaverse/resolve/main/metadata/000-157.json.gz
+
+Adaptations in this website: flat green and white material, custom skeletal poses,
+procedural inverse-kinematics stepping, standing, reclining and tail movement.
+The original creator does not endorse this website.

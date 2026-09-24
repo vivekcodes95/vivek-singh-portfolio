@@ -1,0 +1,9 @@
+.DS_Store
+.sites-runtime/
+node_modules/
+qa/
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
