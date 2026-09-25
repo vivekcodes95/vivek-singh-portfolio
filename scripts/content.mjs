@@ -1,10 +1,11 @@
 // Replace these clearly marked sample drafts with Vivek's own writing before publishing.
-export const profile = { name: 'Vivek Singh', location: 'From Uttarakhand, India', portrait: '/assets/vivek-singh.jpg' };
+export const profile = { name: 'Vivek Singh', location: 'Born in Uttarakhand', portrait: '/assets/vivek-singh.jpg' };
 export const sections = [
   { slug: 'ux-design', name: 'UX Design', icon: 'design', eyebrow: 'People, before pixels', description: 'Notes on how we think, what we notice, and the little decisions that make design feel human.' },
-  { slug: 'history', name: 'History', icon: 'history', eyebrow: 'Looking back, thinking forward', description: 'Questions about the past, the places that hold it, and the ways it shapes our present.' },
+  { slug: 'spatial-design', name: 'Spatial Design', icon: 'space', eyebrow: 'Room to feel at home', description: 'Exploring how thoughtful spaces can bring a little more peace, and a lighter footprint, to everyday life.' },
   { slug: 'photography', name: 'Photography', icon: 'camera', eyebrow: 'A practice of paying attention', description: 'Light, landscapes, and ordinary moments. A space for photographs from my own point of view.' },
-  { slug: 'spatial-design', name: 'Spatial Design', icon: 'space', eyebrow: 'Room to feel at home', description: 'Exploring how thoughtful spaces can bring a little more peace, and a lighter footprint, to everyday life.' }
+  { slug: 'ai-projects', name: 'AI Projects', description: 'Experiments with AI, thoughtful tools, and ideas taking shape.' },
+  { slug: 'history', name: 'History', hiddenFromNav: true, icon: 'history', eyebrow: 'Looking back, thinking forward', description: 'Questions about the past, the places that hold it, and the ways it shapes our present.' }
 ];
 export const posts = [
   { slug: 'room-to-think', section: 'ux-design', title: 'A little room to think', subtitle: 'On white space, attention, and knowing what to leave out.', art: 'space', tag: 'User psychology', body: [
@@ -53,8 +54,11 @@ export const posts = [
     ['A simple notebook exercise', 'Record where you prefer to sit at three different times. Note glare, shadows, and comfort. A future version of this essay could build on those observations with drawings and a real room study.']
   ] },
   ...[
-    ['forest-notes', 'Forest notes', 'A future collection of woodland details, light, and quiet paths.', 'Woodland'],
-    ['closer-to-home', 'Closer to home', 'A future collection of ordinary places seen a little more slowly.', 'Everyday'],
-    ['where-the-hills-begin', 'Where the hills begin', 'A future collection of landscapes and the spaces between them.', 'Landscape']
-  ].map(([slug, title, subtitle, tag]) => ({ slug, title, subtitle, tag, section: 'photography', art: 'photo', body: [] }))
+    ['tiny-forest-mushrooms', 'Tiny Forest Mushrooms', 'Very small mushrooms growing on a moss-covered tree in Coorg.', 'Forest', 'Coorg, Karnataka', 'Sony α6700 + Sigma 18–50mm f/2.8', '29 Aug 2026', '2026-08-29', '/assets/coorg-tiny-forest-mushrooms.jpg', 'Tiny pale mushrooms growing among vivid green moss on a tree in Coorg', 6192, 3480],
+    ['forest-notes', 'Radar or Mushroom?', 'A fallen satellite dish in the forest in Coorg.', 'Woodland', 'Coorg, Karnataka', 'Sony α6700 + Sigma f/1.8', '29 Aug 2026', '2026-08-29', '/assets/coorg-radar-or-mushroom.jpg', 'A fallen parabolic dish among trees and wet leaves in Coorg', 6192, 3480],
+    ['closer-to-home', 'Crash by the River', 'My drone crashed beside this river in Coorg.', 'Riverside', 'Coorg, Karnataka', 'Sony α6700 + Sigma f/1.8', '29 Aug 2026', '2026-08-29', '/assets/coorg-crash-by-the-river.jpg', 'A crashed drone beside a wooded riverbank in Coorg', 6192, 3480],
+    ['where-the-hills-begin', 'Mist on the Hills Slips to Meet the Lake', 'Bhimtal Lake, seen from Golu Devta Temple.', 'Landscape', 'Bhimtal, Uttarakhand', 'Google Pixel 9 Pro', '31 Jan 2026', '2026-01-31', '/assets/bhimtal-mist-meets-lake-graded.png', 'Mist hanging over the hills and Bhimtal Lake as seen from Golu Devta Temple', 1088, 1445],
+    ['rarest-blue-sunset', 'The Rarest Blue Sunset I’ve Seen', 'My first trip with my now-wife. :)', 'Lakeside', 'Zostel Plus, Lonavala', 'Apple iPhone 15', '3 Jan 2025', '2025-01-03', '/assets/lonavala-blue-sunset.png', 'A blue sunset over Pawna Lake, with silhouetted hills and a tree, seen from Zostel Plus in Lonavala', 2079, 2772],
+    ['a-passion-parked-on-my-desk', 'A Passion Parked on My Desk', 'My Sector 40 workspace, where I brought Coco home.', 'Workspace', 'Sector 40, Gurugram', 'Apple iPhone 15', '8 Apr 2025', '2025-04-08', '/assets/gurugram-desk-model-car-grade-01-moody-blue.png', 'A black model Mercedes with glowing headlights on a desk, with a keyboard, monitor, headphones, and plant behind it', 1086, 1448]
+  ].map(([slug, title, subtitle, tag, location, camera, clicked, clickedISO, image, alt, width, height]) => ({ slug, title, subtitle, tag, location, camera, clicked, clickedISO, image, alt, width, height, section: 'photography', art: 'photo', body: [] }))
 ];

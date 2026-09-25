@@ -8,27 +8,69 @@
 @media(min-width:621px) and (prefers-reduced-motion:no-preference){.home-grid .card{animation:emerge .8s cubic-bezier(.2,.7,.25,1) both;animation-delay:calc(.12s * var(--i))}@keyframes emerge{from{opacity:0;translate:0 45px}to{opacity:1;translate:0 0}}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.card:hover .print,.card:focus-visible .print{--lift:0px}.cursor-cue{display:none!important}}
 
+/* Photography cards: plain single-line captions and compact capture details. */
+.photo-card .print-label{align-items:center}
+.photo-location{display:inline-flex;align-items:center;gap:8px;min-width:0;padding-block:1px;font-size:.75rem;line-height:1.35}
+.photo-location svg{display:block;width:15px;height:15px;stroke-width:1.6;transform:translateY(-.5px)}
+.photo-location>span{display:block;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.photo-card .card-copy p{min-height:0;margin-bottom:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.collection-grid.photography-grid{width:100%;max-width:none;margin-inline:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:54px clamp(24px,2.2vw,56px)}
+main.collection{padding-bottom:6.1%}
+.photo-card .meta{display:flex;flex-wrap:nowrap;justify-content:flex-start;align-items:center;gap:10px;opacity:.6;font-variant-numeric:tabular-nums}
+.photo-card .meta>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.photo-meta-diamond{width:4px;height:4px;flex:none;transform:rotate(45deg);background:currentColor}
+.photo-card .meta>:last-child{flex:none;white-space:nowrap;text-align:left}
+
+/* Full photograph viewer. */
+.photo-modal{width:min(1120px,calc(100vw - 40px));max-width:none;max-height:calc(100vh - 40px);padding:0;border:0;border-radius:10px;background:var(--surface);color:var(--ink);box-shadow:0 30px 90px #0008;overflow:auto}
+.photo-modal::backdrop{background:#07100bd9;backdrop-filter:blur(7px)}
+.photo-modal-shell{position:relative}
+.photo-modal-shell>img{display:block;width:100%;height:auto;max-height:calc(100vh - 230px);object-fit:contain;background:#070907}
+.photo-modal-close{position:absolute;top:14px;right:14px;z-index:2;display:grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid #ffffff50;border-radius:50%;background:#0b0e0bc7;color:#fff;font-size:1.55rem;line-height:1;cursor:pointer;backdrop-filter:blur(5px)}
+.photo-modal-copy{padding:18px 20px 20px}
+.photo-modal-copy h2{font-size:1.1rem;margin:0 0 6px}
+.photo-modal-copy p{margin:0;color:var(--muted);font-size:.875rem;line-height:1.6}
+.photo-modal-meta{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 18px;margin-top:14px;color:var(--muted);font-size:.7rem}
+.photo-modal-meta time{text-align:right;white-space:nowrap}
+.photo-modal-help{display:block;margin-top:12px;color:var(--muted);font-size:.625rem}
+body:has(.photo-modal[open]){overflow:hidden}
+@media(max-width:620px){
+  .collection-grid.photography-grid{grid-template-columns:1fr;gap:42px}
+  main.collection{padding-bottom:25px}
+  .photo-modal{width:calc(100vw - 24px);max-height:calc(100vh - 24px)}
+  .photo-modal-shell>img{max-height:58vh}
+  .photo-modal-copy{padding:15px}
+  .photo-modal-meta{grid-template-columns:1fr auto}
+  .photo-modal-location{grid-column:1/-1}
+  .photo-modal-help{display:none}
+}
+@media(min-width:1450px){main.collection{padding-bottom:8%}}
+@media(max-width:1150px) and (min-width:621px){main.collection{padding-bottom:4%}}
+
 /* Homepage profile refinement */
 .hero{padding-top:55px}.portrait{width:144px;height:144px;margin-bottom:28px;border-width:6px;outline-color:#dfe6db;box-shadow:0 12px 32px #1f382312;transform:none}.portrait img{object-position:center 38%}.intro-lines{width:min(100%,760px);margin-inline:auto;font-size:1.0625rem}
 @media(max-width:620px){.portrait{width:118px;height:118px;margin-bottom:26px;border-width:5px}.intro-lines{width:100%;margin-inline:auto;font-size:.9375rem;line-height:1.85}}
 
 .sidebar{border-right:0}
 
-.latest,.collection-grid{width:min(100%,1120px);margin-inline:auto}.home-grid{gap:38px}.collection-grid{column-gap:32px}
+.latest,.collection-grid{width:min(100%,1120px);margin-inline:auto}.collection-grid{column-gap:32px}.home-grid{gap:38px}
+@media(min-width:621px){.collection-grid{margin-left:0;margin-right:auto}}
 
 nav a[aria-current]{background:transparent;color:#646b65;font-weight:600}
+nav a:hover{background:transparent}
 
-/* A slow-walking emblem, separate from the page selection. */
-.sidebar{padding-top:24px}.wordmark{display:block;width:124px;height:82px;margin-left:-5px;letter-spacing:0;line-height:0}
-.logo-tiger{display:block;position:relative;width:100%;height:100%;opacity:.6}.logo-tiger canvas{position:absolute;inset:0;width:100%!important;height:100%!important}.logo-tiger img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.logo-tiger.ready img{visibility:hidden}
+/* A seated, painted companion below the navigation. */
+.sidebar{padding-top:24px}.wordmark{display:block;width:62px;height:41px;margin-left:-5px;letter-spacing:0;line-height:0}
+.logo-tiger{display:block;position:relative;width:100%;height:100%;opacity:1;overflow:hidden}.logo-tiger img,.logo-tiger .tiger-eyes{position:absolute;left:calc(-18100% / 843);top:calc(-900% / 1213);display:block;width:calc(125400% / 843);height:calc(125400% / 1213);max-width:none}.logo-tiger img{object-fit:contain}.logo-tiger .tiger-eyes{pointer-events:none}
 .sidebar-content{height:calc(100% - 82px);padding-top:43px}nav{position:relative}nav a{position:relative;padding-left:20px;padding-right:12px}nav a::before{content:'';position:absolute;left:2px;top:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#3d6b48;opacity:0}nav a[aria-current]::before{opacity:1}
 .home{padding-bottom:clamp(200px,26vh,340px)}.home .hero{padding-bottom:82px}.latest{padding-top:12px}
+@media(min-width:621px){.home .hero,.home .latest{position:relative;left:calc(var(--sidebar)/-2)}}
 .home-grid{position:relative;isolation:isolate;align-items:start}.home-grid .card{position:relative;background:#fff;border:1px solid #e8ebe5;padding:12px 12px 22px;box-shadow:0 2px 3px #23311d0a,0 12px 24px #23311d0c,0 30px 55px #23311d06;animation:none;translate:none;--tilt:0deg}
 .home-grid .card:nth-child(1){z-index:1;--tilt:0deg}.home-grid .card:nth-child(2){z-index:3;--tilt:0deg}.home-grid .card:nth-child(3){z-index:2;--tilt:0deg}
 .home-grid .print{padding:0;border:0;box-shadow:none;transform:none}.home-grid .card-copy{padding:12px 7px 0}.home-grid .print-label{padding:18px 7px 12px}.home-grid .card-copy h2{margin-top:0}.home-grid.stack-live .card{transform:translate3d(var(--stack-x,0px),var(--stack-y,0px),0) rotate(var(--stack-r,0deg)) scale(var(--stack-scale,1));will-change:transform}.home-grid[data-entering="true"] .card{opacity:0}
 .home .draft-note{margin-top:46px;font-size:.75rem}.home-grid .specimen small{font-size:clamp(.55rem,.8vw,.75rem);bottom:18px;letter-spacing:1px}
 @media(max-width:850px) and (min-width:621px){.home-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.home-grid .card{padding:7px 7px 16px}.home-grid .specimen>span{font-size:clamp(.85rem,2.2vw,1.4rem)}.home-grid .room-study>span{font-size:clamp(1rem,2.5vw,1.6rem)}.home-grid .print-label{font-size:.65rem}.home-grid .meta{flex-wrap:wrap;font-size:.65rem}}
-@media(max-width:620px){.sidebar{padding:5px 24px;border-bottom:0}.wordmark{width:94px;height:62px;margin-left:-6px}.sidebar-content{height:auto;padding-top:10px}.home .hero{padding-bottom:70px}.home{padding-bottom:190px}.home-grid{padding:0 8px;gap:34px}.home-grid .specimen small{font-size:.65rem}.home-grid .card-copy{padding-bottom:2px}}
+@media(max-width:620px){.sidebar{padding:5px 24px;border-bottom:0}.wordmark{width:47px;height:31px;margin-left:-6px}.sidebar-content{height:auto;padding-top:10px}.home .hero{padding-bottom:70px}.home{padding-bottom:190px}.home-grid{padding:0 8px;gap:34px}.home-grid .specimen small{font-size:.65rem}.home-grid .card-copy{padding-bottom:2px}}
 @media(prefers-reduced-motion:reduce){.home-grid.stack-live .card{transform:none;will-change:auto}}
 .home-grid .art-mountain-placeholder img{object-fit:cover;object-position:center}
 .deck-controls{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:46px}.home .deck-controls .draft-note{margin:0}.shuffle-cards{border:0;background:transparent;color:var(--green);padding:10px 0 10px 16px;font-size:.75rem;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:8px}.shuffle-cards svg{width:17px;height:17px}.shuffle-cards span{display:inline-block}.shuffle-cards[aria-busy="true"]{opacity:.55}.home-grid[data-shuffling="true"]{pointer-events:none}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
@@ -37,12 +79,83 @@ nav a[aria-current]{background:transparent;color:#646b65;font-weight:600}
 .deck-controls .shuffle-cards{margin-inline:auto;min-height:46px;padding:12px 25px;gap:9px;border:1px solid #c0cdb9;border-radius:12px;background:linear-gradient(#fcfef9,#e7eddf);color:#31543a;font-size:.8125rem;font-weight:600;box-shadow:0 5px 0 #9bad91,0 9px 16px #2437201a,inset 0 1px 0 #fff;transition:transform .15s,box-shadow .15s}
 .deck-controls .shuffle-cards:hover{transform:translateY(-1px);box-shadow:0 6px 0 #9bad91,0 11px 20px #24372022,inset 0 1px 0 #fff}
 .deck-controls .shuffle-cards:active{transform:translateY(4px);box-shadow:0 1px 0 #9bad91,0 3px 6px #24372018,inset 0 1px 0 #fff}
-.sidebar-content nav{position:fixed;top:50%;left:30px;width:calc(var(--sidebar) - 55px);transform:translateY(-50%)}
+/* Begin the navigation one quarter down the desktop viewport. */
+.sidebar-content nav{position:fixed;top:25vh;left:30px;width:calc(var(--sidebar) - 55px);transform:none}
 @media(max-width:620px){.sidebar-content nav{position:relative;top:auto;left:auto;width:auto;transform:none}}
 .sidebar>.sidebar-content{height:100%;padding-top:0}.origin{gap:4px}.origin .wordmark{margin-left:-7px}
+/* Align the outer left knee (source x=246) with the navigation text. */
+.sidebar-bottom{--tiger-height:220px;position:fixed;left:calc(50px - var(--tiger-height) * 65 / 1213);right:auto;bottom:0;margin:0;padding:0;z-index:40}.origin .wordmark{margin-left:0;width:calc(var(--tiger-height) * 843 / 1213);height:var(--tiger-height)}
+.sidebar-bottom[hidden]{display:none!important}
+.sidebar-profile{display:none;position:absolute;top:50px;left:50px;width:136px;align-items:flex-start;flex-direction:column;gap:7px;color:var(--name-ink)}
+.sidebar.has-profile .sidebar-profile{display:flex}.sidebar-profile-photo{display:block;width:68px;height:68px;border-radius:50%;overflow:hidden;border:3px solid var(--surface);outline:1px solid var(--line);box-shadow:0 7px 18px #19332212}.sidebar-profile-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 38%}
+.sidebar-profile-name{display:block;width:64px;height:52px;position:relative;line-height:0}.sidebar-profile-name>span{font-family:var(--display);font-size:1rem;line-height:1.2}
+/* Handwriting is revealed along the original signature's pen strokes. */
+.sidebar-profile-name{color:var(--name-ink)}
+.sidebar-profile-name>span,.personal-name>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.signature-writing{display:block;width:100%;height:100%;overflow:visible;color:var(--name-ink)}
+.signature-pen{stroke-dasharray:100;stroke-dashoffset:0}
+.signature-finished{visibility:visible}
+.personal-name .signature-pen,.profile-arriving .signature-pen{animation:signature-pen-write var(--pen-duration) var(--pen-delay) linear both}
+.personal-name .signature-finished,.profile-arriving .signature-finished{visibility:hidden;animation:signature-ink-finished 1ms var(--pen-finish) step-end forwards}
+@keyframes signature-pen-write{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes signature-ink-finished{to{visibility:visible}}
+.sidebar.profile-leaving .sidebar-profile-name{opacity:0;transition:opacity .25s}
+.sidebar.profile-arriving .sidebar-profile-photo{animation:sidebar-photo-enter .68s cubic-bezier(.2,.72,.25,1) both}.sidebar.profile-leaving .sidebar-profile-photo{animation:sidebar-photo-leave .44s .04s ease-in both}
+@keyframes sidebar-photo-enter{0%{opacity:0;transform:translateY(-28px) scale(.98)}100%{opacity:1;transform:none}}
+@keyframes sidebar-photo-leave{0%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-18px) scale(.98)}}
 .shuffle-fog{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:55;contain:strict;opacity:.16}
 .home{overflow-x:clip}
 @media(prefers-reduced-motion:reduce){.shuffle-fog{display:none}}
-@media(max-width:620px){.sidebar>.sidebar-content{height:auto;padding-top:10px}}
+@media(max-width:620px){.sidebar>.sidebar-content{height:auto;padding-top:10px}.sidebar.has-profile .sidebar-profile{display:none}.sidebar-bottom{--tiger-height:112px;display:block;left:calc(42px - var(--tiger-height) * 65 / 1213);right:auto;bottom:0}}
+@media(min-width:621px) and (max-height:760px){.sidebar-bottom{--tiger-height:148px}}
+@media(prefers-reduced-motion:reduce){.sidebar.profile-arriving .sidebar-profile-photo,.sidebar.profile-arriving .sidebar-profile-name,.sidebar.profile-leaving .sidebar-profile-photo,.sidebar.profile-leaving .sidebar-profile-name{animation:none}}
 /* Reserve two title lines so changing articles never shifts the stacked deck. */
 .home-grid .card-copy h2{min-height:2.9em}
+.personal-name{color:var(--name-ink);margin:0 auto 16px}
+.location{gap:18px;flex-wrap:wrap}.location-part{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}.current-location svg{transform:translateY(-1px)}
+.personal-name{position:relative;width:min(360px,100%);aspect-ratio:2.6;line-height:0}
+.personal-name .signature-writing{position:absolute;left:0;top:50%;height:auto;transform:translateY(-50%)}
+@media(max-width:620px){.personal-name{width:min(300px,100%)}}
+@media(prefers-reduced-motion:reduce){
+  .signature-pen{animation:none!important;stroke-dashoffset:0}
+  .personal-name .signature-finished,.profile-arriving .signature-finished{animation:none!important;visibility:visible}
+}
+
+/* Use the compact navigation before the sidebar crowds tablet content. */
+@media(max-width:1100px){
+  :root{--sidebar:0px;--compact-gutter:clamp(25px,4vw,44px)}
+  .sidebar{position:sticky;top:0;width:100%;height:72px;padding:5px var(--compact-gutter);border:0;display:flex;align-items:center;justify-content:space-between}
+  .menu-toggle{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 5px;border:0;background:none;color:var(--muted);font-size:clamp(14px,.875rem,18px)}
+  .menu-toggle span{font-size:clamp(20px,1.5rem,26px)}
+  .sidebar.has-profile .sidebar-profile{display:none}
+  .sidebar>.sidebar-content{display:none;position:absolute;inset:71px 0 auto;height:auto;padding:10px var(--compact-gutter) 20px}
+  .sidebar.menu-open{z-index:70}
+  .sidebar.menu-open .sidebar-content{display:block;max-height:calc(100dvh - 72px);overflow-y:auto;background:var(--page);box-shadow:0 16px 20px #1b321410}
+  .sidebar-content nav{position:relative;top:auto;left:auto;width:auto;transform:none}
+  nav a{min-height:44px;padding:13px 12px;font-size:.9375rem}
+  main{margin-left:0;padding:24px var(--compact-gutter) 0}
+  main.collection,main.reading{padding-top:110px;padding-bottom:var(--compact-gutter)}
+  .home .hero,.home .latest{left:0}
+  .collection-header,.collection-header.photography-heading{padding-top:0;padding-bottom:36px}
+  .collection-grid{max-width:none;margin-inline:0}
+  .reading-progress{top:71px}
+}
+@media(min-width:621px) and (max-width:1200px){
+  .collection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(hover:none){
+  .card:hover .print{--lift:0px}
+}
+.photo-modal{max-height:calc(100dvh - 40px)}
+.photo-modal-shell>img{max-height:calc(100dvh - 230px)}
+.photo-modal-close{width:44px;height:44px}
+.collection-header h1,.article h1{overflow-wrap:anywhere}
+@media(max-width:620px){
+  .photo-modal{max-height:calc(100dvh - 24px)}
+  .photo-modal-shell>img{max-height:58dvh}
+  .photo-modal-meta{grid-template-columns:minmax(0,1fr) auto}
+}
+/* Keep the expanded, screen-centred deck clear of the fixed desktop sidebar. */
+@media(min-width:1101px){
+  .home .latest{width:min(1120px,calc(100vw - var(--sidebar) * 2 - 48px))}
+}

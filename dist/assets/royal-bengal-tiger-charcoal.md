@@ -1,0 +1,17 @@
+# Royal Bengal tiger — charcoal revision
+
+Generated with the built-in image tool using the monkey engraving as the sole visual reference. Square 1254 × 1254. Replaces the dense engraving in the tiger tooltip.
+
+## Prompt
+
+Use case: style-transfer. Create a square 1:1 wildlife illustration for a small tooltip. Attached monkey image is the ONLY visual style reference; study its loose hand-drawn marks, irregular fur hatching, soft charcoal-like dark masses, and unfinished airy white background. Make a Royal Bengal tiger, large and centrally composed, resting seated on a low mangrove bank with its body in three-quarter view and face looking toward the viewer. Anatomically natural. Match the monkey's old hand-drawn natural-history illustration feeling, but lean into charcoal and graphite: velvety black stripes, grainy pencil texture, expressive broken sketch lines and gentle rubbed shading, not hard precision engraved lines everywhere. Most detail goes into tiger head and body. Sparse Sundarbans suggestion only: one lightly sketched mangrove root beside its paws, a few faint leaf strokes at the edges. At least 60% of the background area must be clean white paper, no elaborate landscape, no detailed forest, no dense foliage, no patterned ground, no glossy photorealism, no digital vector cleanliness, no text or watermark. Keep the entire tiger comfortably inside the square with a small white margin. The result should feel drawn by the same hand as the supplied monkey, with softer charcoal shading.
+
+## Proportion correction
+
+Replaced the initial illustration with a longer, leaner tiger, smaller head and natural forepaws using the built-in image editor. Source: exec-5f27c5d5-876b-4bf8-86ab-bc6de0319181.png.
+
+Prompt: Edit the attached square charcoal drawing for a wildlife tooltip. Correct ONLY the tiger's anatomy and body proportions while retaining the exact monochrome charcoal/graphite drawing medium, loose hatching, white paper and very sparse mangrove-root setting. The present tiger looks squat, fat and has oversized head and forepaws. Redraw it as a lean, athletic adult wild Bengal tiger resting naturally on its belly, body seen in three-quarter side view and head facing the viewer. Give it a visibly longer torso, narrower abdomen and chest, defined yet restrained shoulder muscles, longer slender forelegs resting parallel ahead, realistically sized paws (not giant foreshortened paws), and a smaller head proportional to the body. Reduce the exaggerated shaggy cheek and neck bulk. Hindquarters should follow a graceful elongated feline silhouette rather than a round mound. Keep a healthy muscular tiger, not emaciated. Use a comfortable mid-distance view with minimal perspective distortion, entire tiger visible including tail, and white margin inside the square. Keep the soft grainy charcoal shading, black stripes and expressive sketch lines. Background remains mostly blank white with only a few lightly drawn mangrove roots and leaves. No added background detail, no text, no color, no watermark.
+
+## Population source
+
+Approximately 4,300 wild Bengal tigers worldwide, rounded from the country estimates listed in [WWF's January 2024 Bengal tiger profile](https://www.wwf.de/themen-projekte/artenlexikon/bengal-tiger): India 3,682; Nepal 355; Bhutan 131; Bangladesh 114. These underlying surveys have different dates (2018–2023); the total is an approximate dated compilation, not a synchronized current census. The tooltip labels the estimate WWF 2024. No global all-tiger count is presented as Bengal-only.

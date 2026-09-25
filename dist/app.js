@@ -2,27 +2,93 @@ const menu=document.querySelector('.menu-toggle');
 const sidebar=document.querySelector('.sidebar');
 function closeMenu(){sidebar.classList.remove('menu-open');menu.setAttribute('aria-expanded','false');}
 menu.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';sidebar.classList.toggle('menu-open',open);menu.setAttribute('aria-expanded',String(open));});
+matchMedia('(max-width:1100px)').addEventListener('change',closeMenu);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('menu-open')){closeMenu();menu.focus();}});
 document.addEventListener('click',e=>{if(!sidebar.contains(e.target))closeMenu();});
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const pointerMotion=matchMedia('(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)');
 const cue=document.querySelector('.cursor-cue');
 let destroyStack=()=>{};
+const tigerCompanion=document.querySelector('.sidebar-bottom');
+const tigerSizeObserver=new ResizeObserver(()=>sizePhotographyTiger());
+function sizePhotographyTiger(){
+  const copy=document.querySelector('.photography-heading-copy');
+  if(!copy)return;
+  // Match visible letter edges, excluding the font's extra space above/below lines.
+  const context=document.createElement('canvas').getContext('2d');
+  function inkEdges(element){
+    const style=getComputedStyle(element),rect=element.getBoundingClientRect();
+    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const metrics=context.measureText(element.textContent);
+    const ascent=metrics.fontBoundingBoxAscent??parseFloat(style.fontSize)*.8;
+    const descent=metrics.fontBoundingBoxDescent??parseFloat(style.fontSize)*.2;
+    const leading=(parseFloat(style.lineHeight)-ascent-descent)/2;
+    return {top:rect.top+leading+ascent-metrics.actualBoundingBoxAscent,bottom:rect.bottom-leading-descent+metrics.actualBoundingBoxDescent};
+  }
+  const top=inkEdges(copy.querySelector('h1')).top,bottom=inkEdges(copy.querySelector('p')).bottom;
+  const header=document.querySelector('.photography-heading');
+  // Bound the companion's width so larger text cannot create a resize loop:
+  // a taller tiger would otherwise narrow the copy and make it taller again.
+  const maxHeight=header.clientWidth*.27*1213/843;
+  header.style.setProperty('--photo-tiger-height',`${Math.min(bottom-top,maxHeight)}px`);
+  header.style.setProperty('--photo-tiger-offset',`${top-copy.getBoundingClientRect().top}px`);
+}
+document.fonts.ready.then(sizePhotographyTiger);
+function placeTiger(){
+  tigerSizeObserver.disconnect();
+  const slot=document.querySelector('.photography-tiger-slot');
+  (slot||sidebar).append(tigerCompanion);
+  tigerCompanion.hidden=!slot;
+  tigerCompanion.classList.toggle('tiger-in-heading',Boolean(slot));
+  if(slot){sizePhotographyTiger();tigerSizeObserver.observe(document.querySelector('.photography-heading-copy'));}
+}
 function bindCard(card){
     card.addEventListener('pointermove',e=>{
       if(!pointerMotion.matches||card.closest('.stack-live')?.dataset.shuffling==='true')return;
       const print=card.querySelector('.print');
       const rect=print.getBoundingClientRect(),tilt=((e.clientX-rect.left)/rect.width-.5)*3;
       if(card.closest('.stack-live')?.dataset.open!=='false')print.style.transform=`translateY(-7px) rotate(${tilt}deg)`;
-      cue.textContent=card.classList.contains('photo-card')?'View ↗':'Read ↗';
+      cue.textContent=card.classList.contains('photo-card')?'View photo':'Read ↗';
       cue.style.transform=`translate(${Math.min(e.clientX+18,innerWidth-85)}px,${Math.min(e.clientY+18,innerHeight-45)}px)`;
       cue.classList.add('active');
     });
     const reset=()=>{card.querySelector('.print').style.transform='';cue.classList.remove('active');};
     card.addEventListener('pointerleave',reset);card.addEventListener('click',reset);
   }
+function initPhotoModal(){
+  const dialog=document.querySelector('.photo-modal');
+  if(!dialog)return;
+  const photos=[...document.querySelectorAll('.photo-card[data-photo-src]')];
+  if(!photos.length)return;
+  const image=dialog.querySelector('img'),title=dialog.querySelector('h2'),description=dialog.querySelector('.photo-modal-copy p');
+  const location=dialog.querySelector('.photo-modal-location'),camera=dialog.querySelector('.photo-modal-camera'),date=dialog.querySelector('time');
+  let index=0,returnFocus=null;
+  function render(next){
+    index=(next+photos.length)%photos.length;
+    const card=photos[index],source=card.querySelector('.art img'),cardDate=card.querySelector('.meta time');
+    image.src=card.dataset.photoSrc;image.alt=source.alt;
+    title.textContent=card.querySelector('h2').textContent;
+    description.textContent=card.querySelector('.card-copy p').textContent;
+    location.textContent=card.querySelector('.photo-location>span').textContent;
+    camera.textContent=card.querySelector('.meta>span').textContent;
+    date.textContent=cardDate.textContent;date.dateTime=cardDate.dateTime;
+  }
+  function open(card){
+    returnFocus=card;render(photos.indexOf(card));dialog.showModal();
+  }
+  photos.forEach(card=>card.addEventListener('click',event=>{event.preventDefault();open(card);}));
+  dialog.querySelector('.photo-modal-close').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+  dialog.addEventListener('keydown',event=>{
+    if(event.key==='ArrowRight'){event.preventDefault();render(index+1);}
+    if(event.key==='ArrowLeft'){event.preventDefault();render(index-1);}
+  });
+  dialog.addEventListener('close',()=>{image.removeAttribute('src');returnFocus?.focus({preventScroll:true});});
+}
 function initContent(){
+  placeTiger();
   destroyStack();document.querySelectorAll('[data-card]').forEach(bindCard);
+  initPhotoModal();
   const grid=document.querySelector('.home-grid');destroyStack=grid?createDeck(grid,bindCard):()=>{};
 }
 function createDeck(grid,bindCard){
@@ -203,11 +269,12 @@ addEventListener('scroll',updateProgress,{passive:true});addEventListener('resiz
 addEventListener('blur',()=>cue.classList.remove('active'));
 initContent();updateProgress();
 
-// The logo is independent of navigation and never leaves this fixed position.
+// The painted companion stays in place across page navigation.
 const logo=document.querySelector('.logo-tiger');
-import('/tiger.js').then(m=>m.createTiger(logo)).then(()=>logo.classList.add('ready')).catch(()=>logo.querySelector('canvas')?.remove());
+import('/tiger-gaze.js').then(m=>m.createSeatedTiger(logo)).catch(console.error);
+import('/tiger-tooltip.js').then(m=>m.initTigerTooltip()).catch(console.error);
 const navigation=document.querySelector('nav[aria-label="Main navigation"]');
-const links=[...navigation.querySelectorAll('a')];let controller=null;
+const links=[...navigation.querySelectorAll('a')];let controller=null,profileExitTimer=0;
 async function navigate(url,{push=true}={}){
   controller?.abort();controller=new AbortController();const signal=controller.signal;
   const nextLink=links.find(a=>a.pathname===url.pathname)||links.find(a=>a.pathname!=='/'&&url.pathname.startsWith(a.pathname))||links[0];
@@ -215,14 +282,24 @@ async function navigate(url,{push=true}={}){
     const response=await fetch(url,{signal});if(!response.ok)throw Error('Page unavailable');
     const html=new DOMParser().parseFromString(await response.text(),'text/html');if(signal.aborted)return;
     const main=html.querySelector('main');if(!main)throw Error('Missing page');
+    const wasHome=document.querySelector('main').classList.contains('home');
     document.querySelector('main').replaceWith(main);document.title=html.title;
+    const showSidebarProfile=!main.classList.contains('home');
+    clearTimeout(profileExitTimer);sidebar.classList.remove('profile-arriving','profile-leaving');
+    if(showSidebarProfile){
+      sidebar.classList.add('has-profile');
+      if(wasHome&&!reduced.matches){void sidebar.offsetWidth;sidebar.classList.add('profile-arriving');}
+    }else if(!wasHome&&sidebar.classList.contains('has-profile')&&!reduced.matches){
+      sidebar.classList.add('profile-leaving');
+      profileExitTimer=setTimeout(()=>sidebar.classList.remove('has-profile','profile-leaving'),520);
+    }else sidebar.classList.remove('has-profile');
     document.querySelector('meta[name="description"]').content=html.querySelector('meta[name="description"]').content;
     links.forEach(a=>a.removeAttribute('aria-current'));nextLink.setAttribute('aria-current','page');
     if(push)history.pushState({},'',url);
     scrollTo({top:0,behavior:'instant'});closeMenu();cue.classList.remove('active');initContent();updateProgress();main.focus({preventScroll:true});
   }catch(error){if(error.name!=='AbortError')location.assign(url);}
 }
-for(const link of [...links,document.querySelector('.wordmark')])link.addEventListener('click',event=>{
+for(const link of [...links,document.querySelector('.sidebar-profile')])link.addEventListener('click',event=>{
   if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
   event.preventDefault();if(link.pathname===location.pathname){scrollTo({top:0,behavior:'smooth'});return;}
   navigate(new URL(link.href));

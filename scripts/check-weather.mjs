@@ -14,20 +14,20 @@ try{
  async function pull(distance){const b=await knot.boundingBox();await page.mouse.move(b.x+b.width/2,b.y+b.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2+12,b.y+b.height/2+distance,{steps:12});await page.mouse.up();}
  await pull(12);assert.equal(await mode(),'day','Short pulls must not change theme');
  await page.waitForTimeout(1200);await pull(60);assert.equal(await mode(),'night');assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(5, 6, 7)');
- await page.waitForFunction(()=>JSON.parse(document.querySelector('.night-scene').dataset.eyePairs||'[]').length===4);
+ await page.waitForFunction(()=>JSON.parse(document.querySelector('.night-scene').dataset.eyePairs||'[]').length===3);
  const pairs=()=>page.locator('.night-scene').evaluate(c=>JSON.parse(c.dataset.eyePairs));
  assert.equal(await page.getByText('Roots in the hills. Curiosity everywhere.',{exact:true}).count(),0);
- assert.equal(await page.locator('.logo-tiger').getAttribute('data-ink'),'e0d5b8');
- const first=await pairs();assert.equal(new Set(first.map(p=>p.region)).size,4,'Eye pairs must occupy four regions');assert.deepEqual(first.map(p=>p.color).sort(),['gold','gold','reddish','reddish']);
+ assert.equal(await page.locator('.logo-tiger').getAttribute('data-ink'),'8dccad');
+ const first=await pairs();assert.equal(new Set(first.map(p=>p.region)).size,3,'Eye pairs must occupy three regions');assert.deepEqual(first.map(p=>p.color).sort(),['gold','gold','reddish']);
  assert.ok(Math.hypot(first[0].x-first[1].x,first[0].y-first[1].y)>90);
  await page.waitForTimeout(250);await page.screenshot({path:'qa/weather/night.png'});
- await page.waitForFunction(first=>{const pairs=JSON.parse(document.querySelector('.night-scene').dataset.eyePairs||'[]');return pairs.length===4&&pairs.every(p=>{const old=first.find(o=>o.id===p.id);return Math.hypot(p.x-old.x,p.y-old.y)>40;});},first,{timeout:10000});
+ await page.waitForFunction(first=>{const pairs=JSON.parse(document.querySelector('.night-scene').dataset.eyePairs||'[]');return pairs.length===3&&pairs.every(p=>{const old=first.find(o=>o.id===p.id);return Math.hypot(p.x-old.x,p.y-old.y)>40;});},first,{timeout:10000});
  const clear=await page.evaluate(()=>{const pairs=JSON.parse(document.querySelector('.night-scene').dataset.eyePairs);return pairs.every(p=>![...document.querySelectorAll('main h1,main h2,main h3,main p,.card')].some(el=>{const r=el.getBoundingClientRect();return r.width&&r.height&&p.x+36>r.left&&p.x-36<r.right&&p.y+19>r.top&&p.y-19<r.bottom;}));});assert.ok(clear,'Eyes overlap content');
  await page.getByRole('button',{name:'Rain mode',exact:true}).click();assert.equal(await mode(),'rain');
  await page.waitForTimeout(800);assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(8, 15, 11)');
  const rain=await page.locator('.night-scene').evaluate(c=>c.toDataURL());await page.waitForTimeout(180);assert.notEqual(await page.locator('.night-scene').evaluate(c=>c.toDataURL()),rain);
  assert.equal(await page.locator('.forest-audio-toggle').count(),0);
- assert.equal(await page.locator('.logo-tiger').getAttribute('data-ink'),'ce8c4c');
+ assert.equal(await page.locator('.logo-tiger').getAttribute('data-ink'),'b4cb92');
  await page.screenshot({path:'qa/weather/rain.png'});
  await page.getByRole('navigation').getByRole('link',{name:'UX Design',exact:true}).click();await page.waitForURL('**/ux-design/');assert.equal(await mode(),'rain');assert.equal(await page.locator('.weather-control').count(),1);
  await page.reload();assert.equal(await mode(),'rain');
@@ -39,5 +39,5 @@ try{
  await page.getByRole('button',{name:'Rain mode',exact:true}).click();await page.waitForTimeout(700);await page.screenshot({path:'qa/weather/mobile.png'});const k=await knot.boundingBox();assert.ok(k.x>=0&&k.x+k.width<=390,'Rope knot clipped');
  await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.night-scene').evaluate(el=>getComputedStyle(el).display),'none');
  await knot.focus();await page.keyboard.press('Enter');assert.equal(await mode(),'day');
- assert.deepEqual(errors,[]);console.log('Passed: weather icons, short/full rope pulls, four relocating flat eye pairs, clear text, animated rain, theme palettes, persistence, navigation, mobile, keyboard, reduced motion.');
+ assert.deepEqual(errors,[]);console.log('Passed: weather icons, short/full rope pulls, three relocating flat eye pairs, clear text, animated rain, theme palettes, persistence, navigation, mobile, keyboard, reduced motion.');
 }finally{await browser.close();}

@@ -1,0 +1,11 @@
+# Upright painted tiger
+
+Generated with the built-in image tool. The hanging macaque is the painting-style reference; the supplied angular tiger is the animal/color reference. Pupils are separate interactive SVG layers. CSS trims transparent margins to dock the visible illustration against the left and bottom edges.
+
+## Final prompt
+
+Use case: style-transfer. Create the replacement website tiger character from these two images. Image 1 (the hanging lion-tailed macaque) is the exact illustration-medium reference: match its hand-painted gouache/watercolor pigment, tactile softly faceted fur, softly irregular silhouettes, layered paint and calm expressive face. Image 2 (the angular orange tiger) supplies animal identity and warm orange/ivory/charcoal palette ONLY.
+Redesign the tiger as a full-body tiger SITTING UPRIGHT, facing straight forward toward the viewer. Straight vertical torso, head upright not tilted, forelegs naturally straight ending in two broad soft paws together at the bottom, haunches folded at sides, tail curled close around hip and feet. Adult tiger, dignified and slightly curious, cartoonishly simplified but anatomically credible, proportions closer to the macaque illustration rather than a cute baby mascot.
+No ink outlines, NO long whisker strokes, NO projecting scribbles, NO sharp geometric triangles, NO hatching or hard graphic strokes. Preserve tiger stripes but make them soft painted organic bands integrated into the fur. Match the macaque's soft sculpted gouache character exactly, not a flat vector, not a photo or plastic 3D render.
+Eyes are symmetrical open oval/almond shapes at the same height, looking forward, amber gold interiors bordered by natural dark eyelids. For the interactive eye layer leave the two amber eye interiors BLANK without pupils or catchlights (the website will add them), no dark pupils baked into image. Eyes large enough to read when the character is displayed at 150px wide.
+Full body including feet, only one tiger, tightly framed. Transparent alpha background, no scenery, no ground/shadow, no white square, no lettering or watermark. Square canvas; minimize empty margins on all sides, paws very close to bottom canvas edge. All fur and body texture should be painted in the same style as the reference macaque.

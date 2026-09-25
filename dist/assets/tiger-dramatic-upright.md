@@ -1,0 +1,11 @@
+# Dramatic upright tiger
+
+Created using the built-in image tool. Angular tiger reference for expression and shape; hanging monkey reference for paint texture. Transparent margins are cropped in CSS; pupils are interactive SVG layers.
+
+## Final prompt
+
+Use case: stylized-concept. Design a stylized cartoon Bengal tiger for a website. Image 1 is the primary character design reference: dramatic unimpressed half-lidded expression, sharp cheek corners, broad angular nose, sculptural geometric face, bold zigzag tiger stripes, orange and gold coat with subtle muted purple shadows. Image 2 is ONLY the paint-texture reference (hanging monkey): matte tactile gouache grain. Do NOT copy the monkey's realistic fur.
+Make this tiger SIT UPRIGHT in full-body frontal view: erect torso, head vertical and facing the camera, two front legs straight ending in broad angular paws at bottom, haunches to each side and a compact striped tail curled around the feet. Oversized expressive angular head, long broad blocky muzzle, slightly raised brow, sleepy skeptical narrowed eyes. A humorous theatrical character with attitude, not angry/aggressive.
+Strong clean angular shapes, sharp-cornered face and cheek planes, elegant stylized triangular stripes and large flat painterly shapes. Like a sophisticated graphic storybook cartoon built from painted cut paper. Keep fine watercolor/gouache pigment inside the shapes. NOT realistic, no individual fur strands, no fluffy realistic cheek ruff, no soft realistic anatomy. NO outline strokes, NO projecting long whisker lines or scribbles across/outside the tiger (the reference's long sketch strokes must be omitted). The angular stripes remain essential.
+Color: orange, amber gold, ivory muzzle and chest, dark chocolate stripes, subtle mauve shade. No green recoloring. Transparent alpha background, single tiger only, no ground shadow, scenery, text, border or watermark. Full paws and ears visible. Square canvas, tightly framed.
+Interactive eyes: preserve dramatically half-lidded shapes BUT leave their visible amber interiors blank, with NO dark pupil/catchlights; the website adds those as moving layers. Both eye openings visibly readable under the eyelids, symmetric frontal eye placement.

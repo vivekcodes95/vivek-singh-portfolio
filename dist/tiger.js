@@ -11,8 +11,8 @@ export async function createTiger(host) {
   const camera = new T.OrthographicCamera(-1.376,1.376,.91,-.91,.01,30);
   camera.position.set(-6,.72,.06);camera.lookAt(0,.72,.06);
   const renderer = new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(372,246);
-  renderer.domElement.style.width='124px';renderer.domElement.style.height='82px';
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(186,123);
+  renderer.domElement.style.width='62px';renderer.domElement.style.height='41px';
   renderer.setClearColor(0xffffff,0);renderer.outputColorSpace=T.SRGBColorSpace;
   renderer.domElement.setAttribute('aria-hidden','true');host.append(renderer.domElement);
   const gltf = await new GLTFLoader().loadAsync('/assets/tiger-rig.glb');
