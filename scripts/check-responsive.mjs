@@ -27,11 +27,18 @@ try {
       assert.equal(response.status(), 200);
       await page.waitForTimeout(150);
       await checkLayout(`${route} at ${width}`);
-      // Compare actual text fragments with the main clipping edge, not only document overflow.
+      if (width > 1200) {
+        const stage = await page.locator('main').evaluate(element => {
+          const rect = element.getBoundingClientRect();
+          return { left: rect.left, right: innerWidth - rect.right };
+        });
+        assert.ok(Math.abs(stage.left - stage.right) < 1, `${route} stage is not screen-centred at ${width}`);
+      }
+      // The home hero is intentionally centred on the viewport, so compare its text
+      // fragments with the viewport rather than the main column's inset edge.
       const clipped = await page.locator('.intro-lines p').evaluateAll(elements => elements.some(element => {
         const range = document.createRange(); range.selectNodeContents(element);
-        const main = element.closest('main').getBoundingClientRect();
-        return [...range.getClientRects()].some(rect => rect.left < Math.max(main.left, 0) - 1 || rect.right > Math.min(main.right, innerWidth) + 1);
+        return [...range.getClientRects()].some(rect => rect.left < -1 || rect.right > innerWidth + 1);
       }));
       assert.equal(clipped, false, `Bio clipped at ${width}`);
       if (route === '/photography/') {
@@ -40,6 +47,19 @@ try {
           return [parseFloat(style.paddingRight), parseFloat(style.paddingBottom)];
         });
         assert.ok(Math.abs(spacing[0] - spacing[1]) < 1, `Bottom/right gutters differ at ${width}`);
+      }
+      if (route !== '/' && await page.locator('.collection-grid').count()) {
+        const aligned = await page.evaluate(() => {
+          const header=document.querySelector('.collection-header').getBoundingClientRect(),grid=document.querySelector('.collection-grid').getBoundingClientRect(),weather=document.querySelector('.weather-control').getBoundingClientRect();
+          return Math.abs(header.left-grid.left)<1&&Math.abs(weather.right-grid.right)<1&&Math.abs((grid.left+grid.right)/2-innerWidth/2)<1;
+        });
+        assert.equal(aligned,true,`${route} header or mode selector is misaligned at ${width}`);
+        assert.equal(await page.locator('.rope-monkey').isVisible(),false,`${route} still shows the mode-selector monkey at ${width}`);
+        assert.equal(await page.locator('.weather-rope').first().isVisible(),false,`${route} still shows the mode-selector rope at ${width}`);
+        if (width === 2560) {
+          const columns = await page.locator('.collection-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+          assert.equal(columns, route === '/photography/' ? 3 : 4, `${route} wide-screen column count is incorrect`);
+        }
       }
       if ([390,768,1440].includes(width) && ['/', '/photography/'].includes(route)) {
         await page.waitForTimeout(800);
@@ -53,7 +73,7 @@ try {
     await page.goto('http://127.0.0.1:4173/photography/');
     if (width <= 1100) {
       await page.getByRole('button', { name: 'Menu', exact: false }).click();
-      await page.getByRole('navigation').getByRole('link', { name: 'UX Design', exact: true }).click();
+      await page.getByRole('navigation').getByRole('link', { name: 'Product Design', exact: true }).click();
       await page.waitForURL('**/ux-design/');
       assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'false');
       await page.locator('.menu-toggle').click();
@@ -81,13 +101,9 @@ try {
     for (const mode of ['day', 'night', 'rain']) {
       await page.locator(`[data-weather="${mode}"]`).click();
       assert.equal(await page.locator('html').getAttribute('data-theme'), mode);
-      await page.locator('.rope-monkey').focus(); await page.waitForTimeout(500);
-      await fits(page.locator('#monkey-tooltip'), `Monkey tooltip ${width} ${mode}`);
-      await page.keyboard.press('Escape'); await page.locator('.rope-monkey').blur();
+      assert.equal(await page.locator('.rope-monkey').isVisible(),false,`Inner-page monkey visible at ${width} ${mode}`);
+      assert.equal(await page.locator('.weather-rope').first().isVisible(),false,`Inner-page rope visible at ${width} ${mode}`);
     }
-    await page.locator('.tiger-info').focus(); await page.waitForTimeout(500);
-    await fits(page.locator('#tiger-tooltip'), `Tiger tooltip ${width}`);
-    await page.keyboard.press('Escape');
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const width of [320,390,768,1440]) {

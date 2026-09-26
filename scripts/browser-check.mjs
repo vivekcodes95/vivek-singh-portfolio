@@ -26,7 +26,7 @@ await page.goto('http://127.0.0.1:4173/');
 await page.evaluate(()=>scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));await page.waitForTimeout(100);
 await page.locator('[data-card]').first().hover();if(!await page.locator('.cursor-cue').isVisible())throw Error('Cursor cue missing');
 await page.locator('[data-card]').first().click();await page.waitForURL('**/ux-design/room-to-think/');
-if(await page.locator('nav [aria-current]').innerText()!=='UX Design')throw Error('Active nav lost');
+if(await page.locator('nav [aria-current]').innerText()!=='Product Design')throw Error('Active nav lost');
 await page.screenshot({path:'qa/reading-desktop.png',fullPage:true});
 await page.setViewportSize({width:390,height:844});
 for(const route of ['/','/ux-design/','/history/','/photography/','/spatial-design/','/ux-design/room-to-think/']){

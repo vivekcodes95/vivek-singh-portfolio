@@ -4,13 +4,19 @@ let syncControl=()=>{};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const canvas=document.createElement('canvas');canvas.className='night-scene';canvas.setAttribute('aria-hidden','true');document.body.prepend(canvas);
 const ctx=canvas.getContext('2d');
-let width=innerWidth,height=innerHeight,flies=[],frame=0,last=0,clock=0,eyeSlots=[];
+let width=innerWidth,height=innerHeight,flies=[],frame=0,last=0,clock=0,eyeSlots=[],nextBlinkAllowed=0;
 const random=(min,max)=>min+Math.random()*(max-min);
 const clamp=v=>Math.max(0,Math.min(1,v));
 const smooth=v=>{v=clamp(v);return v*v*(3-2*v);};
 const night=()=>root.dataset.theme==='night';
+const home=()=>location.pathname==='/' || location.pathname==='/index.html';
 const dark=()=>root.dataset.theme!=='day';
-let drops=[],splashes=[],lightning=null,nextLightning=3;
+const lightningTiming={
+  firstStorm:Number(globalThis.__RAIN_LIGHTNING_TIMING__?.firstStorm??2),
+  cycle:Number(globalThis.__RAIN_LIGHTNING_TIMING__?.cycle??3),
+  doubleGap:Number(globalThis.__RAIN_LIGHTNING_TIMING__?.doubleGap??.2)
+};
+let drops=[],splashes=[],lightning=null,nextLightning=Infinity,lightningQueue=[],doubleBurstNext=true,lightningCount=0;
 function resize(){
   width=innerWidth;height=innerHeight;const ratio=Math.min(devicePixelRatio||1,1.75);
   canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx?.setTransform(ratio,0,0,ratio,0,0);
@@ -47,7 +53,11 @@ function occupiedAreas(){
   return [...document.querySelectorAll('.sidebar,.weather-control,.rope-knot,.rope-monkey,.monkey-tooltip,.portrait,h1,h2,h3,p,.card,.article,.intro-lines,.location,.deck-controls,.collection-rule,.page-kicker,.collection-note,main a,main time,main small,main span')].map(el=>el.getBoundingClientRect()).filter(r=>r.width&&r.height&&r.bottom>0&&r.top<height);
 }
 function clearSpot(x,y,occupied){return !occupied.some(r=>x+36>r.left-12&&x-36<r.right+12&&y+19>r.top-12&&y-19<r.bottom+12);}
-function findQuietSpot(occupied,previous,region){
+function minimumEyeSeparation(){
+  const sidebar=width>620?parseFloat(getComputedStyle(root).getPropertyValue('--sidebar')):0;
+  return Math.min(280,Math.max(width<=620?120:190,(width-sidebar)*.18));
+}
+function findQuietSpot(occupied,previous,region,otherEyes=[]){
   const sidebar=width>620?parseFloat(getComputedStyle(root).getPropertyValue('--sidebar')):0;
   const left=sidebar+42,right=width-42,top=90,bottom=height-45;
   const midX=(left+right)/2,midY=(top+bottom)/2;
@@ -59,33 +69,46 @@ function findQuietSpot(occupied,previous,region){
   for(let i=0;i<240;i++){
     const x=random(...xRange),y=random(...yRange);
     if(!clearSpot(x,y,occupied))continue;
+    if(otherEyes.some(eye=>Math.hypot(x-eye.x,y-eye.y)<minimumEyeSeparation()))continue;
     const distance=previous?Math.hypot(x-previous.x,y-previous.y):Math.random();
     if(distance>bestDistance){bestDistance=distance;best={x,y,start:clock,scale:random(.6,.7),region};}
   }
   return best;
 }
-function resetEyes(delay=1){eyeSlots=Array.from({length:3},(_,i)=>({id:i,reddish:i%2===1,next:clock+delay}));canvas.dataset.eyes='hidden';canvas.dataset.eyePairs='[]';}
+function resetEyes(delay=1){
+  eyeSlots=Array.from({length:3},(_,i)=>({id:i,reddish:i%2===1,next:clock+delay,nextBlink:clock+delay+.65+i*.7,blinkStart:-Infinity}));
+  nextBlinkAllowed=clock+delay+.55;
+  canvas.dataset.eyes='hidden';canvas.dataset.eyePairs='[]';canvas.dataset.blinkingEyes='[]';
+}
 function drawEyes(t){
   const occupied=occupiedAreas();
   for(const slot of eyeSlots){
-    const others=eyeSlots.filter(s=>s!==slot&&s.eye).map(s=>({left:s.eye.x-65,right:s.eye.x+65,top:s.eye.y-36,bottom:s.eye.y+36}));
+    const liveEyes=eyeSlots.filter(s=>s!==slot&&s.eye).map(s=>s.eye);
+    const acceptedEyes=eyeSlots.filter(s=>s.id<slot.id&&s.eye).map(s=>s.eye);
+    const others=liveEyes.map(eye=>({left:eye.x-65,right:eye.x+65,top:eye.y-36,bottom:eye.y+36}));
     const areas=[...occupied,...others];
-    if(slot.eye&&(t-slot.eye.start>slot.eye.duration||!clearSpot(slot.eye.x,slot.eye.y,areas))){slot.previous=slot.eye;slot.eye=null;slot.next=t+.18;}
-    if(!slot.eye&&t>=slot.next){const spot=findQuietSpot(areas,slot.previous,slot.id);if(spot)slot.eye={...spot,reddish:slot.reddish,duration:3.6+slot.id*.35};else slot.next=t+.15;}
-    if(slot.eye)drawEye(slot.eye,t);
+    const tooClose=slot.eye&&acceptedEyes.some(eye=>Math.hypot(slot.eye.x-eye.x,slot.eye.y-eye.y)<minimumEyeSeparation());
+    if(slot.eye&&(t-slot.eye.start>slot.eye.duration||!clearSpot(slot.eye.x,slot.eye.y,areas)||tooClose)){slot.previous=slot.eye;slot.eye=null;slot.next=t+.18;}
+    if(!slot.eye&&t>=slot.next){const spot=findQuietSpot(areas,slot.previous,slot.id,liveEyes);if(spot)slot.eye={...spot,reddish:slot.reddish,duration:3.6+slot.id*.35};else slot.next=t+.15;}
   }
+  let blinking=eyeSlots.find(slot=>slot.eye&&t-slot.blinkStart>=0&&t-slot.blinkStart<=.15);
+  if(!blinking&&t>=nextBlinkAllowed){
+    blinking=eyeSlots.filter(slot=>slot.eye&&t>=slot.nextBlink).sort((a,b)=>a.nextBlink-b.nextBlink)[0];
+    if(blinking){blinking.blinkStart=t;blinking.nextBlink=t+random(2.8,4);nextBlinkAllowed=t+.7;}
+  }
+  eyeSlots.forEach(slot=>{if(slot.eye)drawEye(slot.eye,t,slot===blinking?slot.blinkStart:null);});
   const visible=eyeSlots.flatMap(s=>s.eye?[{id:s.id,region:s.id,x:s.eye.x,y:s.eye.y,scale:s.eye.scale,color:s.reddish?'reddish':'gold'}]:[]);
-  canvas.dataset.eyes=visible.length?'visible':'hidden';canvas.dataset.eyePairs=JSON.stringify(visible);
+  canvas.dataset.eyes=visible.length?'visible':'hidden';canvas.dataset.eyePairs=JSON.stringify(visible);canvas.dataset.eyeMinDistance=String(minimumEyeSeparation());canvas.dataset.blinkingEyes=JSON.stringify(blinking?[blinking.id]:[]);
 }
 function eyeShape(){
   ctx.beginPath();ctx.moveTo(-14,-5);ctx.bezierCurveTo(-5,-5.5,8,-2,14,4);ctx.bezierCurveTo(8,13,-11,12,-14,-5);ctx.closePath();
 }
-function drawEye(eyes,t){
+function drawEye(eyes,t,blinkStart=null){
   const age=t-eyes.start;
 
   // A decisive eyelid close, brief shut, and quick reopening (150 ms total).
-  const blink=at=>{const d=age-at;if(d<0||d>.15)return 0;if(d<.045)return smooth(d/.045);if(d<.08)return 1;return 1-smooth((d-.08)/.07);};
-  const opening=1-Math.max(blink(1.1),blink(2.5));
+  const blink=()=>{const d=blinkStart===null?-1:t-blinkStart;if(d<0||d>.15)return 0;if(d<.045)return smooth(d/.045);if(d<.08)return 1;return 1-smooth((d-.08)/.07);};
+  const opening=1-blink();
   const reddish=eyes.reddish;
   ctx.save();ctx.translate(eyes.x+Math.sin(age*.5)*1.7,eyes.y);ctx.scale(eyes.scale,eyes.scale);ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.shadowColor='transparent';ctx.globalCompositeOperation='source-over';
   for(const sign of [-1,1]){
@@ -97,7 +120,7 @@ function drawEye(eyes,t){
   ctx.restore();
 }
 function drawRain(dt){
-  drawLightning();
+  updateLightningSequence();drawLightning();
   const wind=65+Math.sin(clock*.35)*22;
   ctx.lineCap='round';
   for(const drop of drops){
@@ -117,21 +140,33 @@ function drawRain(dt){
   for(const s of splashes){s.age+=dt;ctx.strokeStyle=`rgba(174,192,207,${(1-s.age/.4)*.13})`;ctx.lineWidth=.6;ctx.beginPath();ctx.ellipse(s.x,s.y,2+s.age*22,1+s.age*4,0,Math.PI,Math.PI*2);ctx.stroke();}
   canvas.dataset.rain='true';
 }
-function drawLightning(){
-  if(!lightning&&clock>=nextLightning){
-    const sidebar=width>620?parseFloat(getComputedStyle(root).getPropertyValue('--sidebar')):0;
-    const x=Math.random()<.5?random(sidebar+35,sidebar+(width-sidebar)*.25):random(width*.82,width-28);
-    const endY=random(height*.28,height*.57),points=[{x,y:-15}],branches=[];
-    for(let i=1;i<=12;i++){
-      const previous=points.at(-1),y=i*endY/12;
-      points.push({x:Math.max(sidebar+10,Math.min(width-10,previous.x+random(-23,23))),y});
-      if(i===4||i===7){
-        const start=points.at(-1),direction=i===4?-1:1;
-        branches.push([start,{x:start.x+direction*random(16,30),y:y+12},{x:start.x+direction*random(32,46),y:y+34},{x:start.x+direction*random(45,66),y:y+55}]);
-      }
+function spawnLightning(){
+  const sidebar=width>620?parseFloat(getComputedStyle(root).getPropertyValue('--sidebar')):0;
+  const left=Math.min(width-28,sidebar+35),right=Math.max(left,width-28);
+  const x=random(left,right),endY=random(height*.28,height*.57),points=[{x,y:-15}],branches=[];
+  for(let i=1;i<=12;i++){
+    const previous=points.at(-1),y=i*endY/12;
+    points.push({x:Math.max(sidebar+10,Math.min(width-10,previous.x+random(-23,23))),y});
+    if(i===4||i===7){
+      const start=points.at(-1),direction=i===4?-1:1;
+      branches.push([start,{x:start.x+direction*random(16,30),y:y+12},{x:start.x+direction*random(32,46),y:y+34},{x:start.x+direction*random(45,66),y:y+55}]);
     }
-    lightning={start:clock,points,branches,x};nextLightning=clock+random(8,15);
   }
+  lightning={start:clock,points,branches,x};lightningCount+=1;
+  canvas.dataset.lightningCount=String(lightningCount);canvas.dataset.lightningX=String(Math.round(x));
+}
+function updateLightningSequence(){
+  if(clock>=nextLightning){
+    const burstAt=clock;
+    lightningQueue.push(burstAt);
+    if(doubleBurstNext)lightningQueue.push(burstAt+lightningTiming.doubleGap);
+    canvas.dataset.lightningSequence=doubleBurstNext?'double':'single';
+    doubleBurstNext=!doubleBurstNext;nextLightning=clock+lightningTiming.cycle;
+  }
+  while(lightningQueue.length&&clock>=lightningQueue[0]){lightningQueue.shift();spawnLightning();}
+  canvas.dataset.nextLightning=Number.isFinite(nextLightning)?String(nextLightning):'';
+}
+function drawLightning(){
   if(!lightning){canvas.dataset.lightning='false';return;}
   const age=clock-lightning.start;
   if(age>.58){lightning=null;canvas.dataset.lightning='false';return;}
@@ -152,7 +187,7 @@ function drawLightning(){
 function tick(now){
   frame=0;if(!dark()||reduced.matches||document.hidden||!ctx)return;
   const elapsed=(now-last)/1000,dt=Math.min(elapsed,.045);last=now;clock+=elapsed;
-  ctx.clearRect(0,0,width,height);if(night()){flies.forEach(f=>drawFly(f,clock,dt));drawEyes(clock);}else{drawRain(dt);canvas.dataset.eyes='hidden';}
+  ctx.clearRect(0,0,width,height);if(night()){flies.forEach(f=>drawFly(f,clock,dt));if(home())drawEyes(clock);else{canvas.dataset.eyes='hidden';canvas.dataset.eyePairs='[]';canvas.dataset.blinkingEyes='[]';}}else{drawRain(dt);canvas.dataset.eyes='hidden';canvas.dataset.eyePairs='[]';canvas.dataset.blinkingEyes='[]';}
   canvas.dataset.running='true';frame=requestAnimationFrame(tick);
 }
 function syncAnimation(){
@@ -165,7 +200,10 @@ function applyTheme(value,persist=true){
   document.querySelector('meta[name="theme-color"]').content=mode==='night'?'#050607':mode==='rain'?'#080f0b':'#ffffff';
   syncControl(mode,persist);
   if(persist)try{localStorage.setItem('portfolio-theme',mode);}catch{}
-  clock=0;resetEyes(1);canvas.dataset.rain=String(mode==='rain');lightning=null;nextLightning=mode==='rain'?0:random(2.5,4.5);canvas.dataset.lightning='false';
+  clock=0;resetEyes(1);canvas.dataset.rain=String(mode==='rain');lightning=null;lightningQueue=[];lightningCount=0;doubleBurstNext=true;
+  if(mode==='rain'){lightningQueue.push(0);nextLightning=lightningTiming.firstStorm;canvas.dataset.lightningSequence='entry';}
+  else{nextLightning=Infinity;canvas.dataset.lightningSequence='';}
+  canvas.dataset.lightning='false';canvas.dataset.lightningCount='0';canvas.dataset.lightningX='';canvas.dataset.nextLightning=Number.isFinite(nextLightning)?String(nextLightning):'';
   dispatchEvent(new CustomEvent('portfolio-themechange',{detail:{night:mode==='night',mode}}));syncAnimation();
 }
 syncControl=initWeatherControl(applyTheme);

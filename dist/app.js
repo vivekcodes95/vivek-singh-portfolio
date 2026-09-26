@@ -1,7 +1,7 @@
 const menu=document.querySelector('.menu-toggle');
 const sidebar=document.querySelector('.sidebar');
 function closeMenu(){sidebar.classList.remove('menu-open');menu.setAttribute('aria-expanded','false');}
-menu.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';sidebar.classList.toggle('menu-open',open);menu.setAttribute('aria-expanded',String(open));});
+menu.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';sidebar.classList.toggle('menu-open',open);menu.setAttribute('aria-expanded',String(open));if(open)requestAnimationFrame(()=>moveNavIndicator(links.find(link=>link.hasAttribute('aria-current')),false));});
 matchMedia('(max-width:1100px)').addEventListener('change',closeMenu);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('menu-open')){closeMenu();menu.focus();}});
 document.addEventListener('click',e=>{if(!sidebar.contains(e.target))closeMenu();});
@@ -9,23 +9,27 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const pointerMotion=matchMedia('(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)');
 const cue=document.querySelector('.cursor-cue');
 let destroyStack=()=>{};
+let aboutDeckOpened=false;
 const tigerCompanion=document.querySelector('.sidebar-bottom');
 const tigerSizeObserver=new ResizeObserver(()=>sizePhotographyTiger());
+const uxMascotSizeObserver=new ResizeObserver(()=>sizeUxMascot());
+let martenGazeFactory=null,destroyMartenGaze=()=>{};
+let martenTooltipFactory=null,destroyMartenTooltip=()=>{};
+function inkEdges(element,context){
+  const style=getComputedStyle(element),rect=element.getBoundingClientRect();
+  context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const metrics=context.measureText(element.textContent);
+  const ascent=metrics.fontBoundingBoxAscent??parseFloat(style.fontSize)*.8;
+  const descent=metrics.fontBoundingBoxDescent??parseFloat(style.fontSize)*.2;
+  const leading=(parseFloat(style.lineHeight)-ascent-descent)/2;
+  return {top:rect.top+leading+ascent-metrics.actualBoundingBoxAscent,bottom:rect.bottom-leading-descent+metrics.actualBoundingBoxDescent};
+}
 function sizePhotographyTiger(){
   const copy=document.querySelector('.photography-heading-copy');
   if(!copy)return;
   // Match visible letter edges, excluding the font's extra space above/below lines.
   const context=document.createElement('canvas').getContext('2d');
-  function inkEdges(element){
-    const style=getComputedStyle(element),rect=element.getBoundingClientRect();
-    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-    const metrics=context.measureText(element.textContent);
-    const ascent=metrics.fontBoundingBoxAscent??parseFloat(style.fontSize)*.8;
-    const descent=metrics.fontBoundingBoxDescent??parseFloat(style.fontSize)*.2;
-    const leading=(parseFloat(style.lineHeight)-ascent-descent)/2;
-    return {top:rect.top+leading+ascent-metrics.actualBoundingBoxAscent,bottom:rect.bottom-leading-descent+metrics.actualBoundingBoxDescent};
-  }
-  const top=inkEdges(copy.querySelector('h1')).top,bottom=inkEdges(copy.querySelector('p')).bottom;
+  const top=inkEdges(copy.querySelector('h1'),context).top,bottom=inkEdges(copy.querySelector('p'),context).bottom;
   const header=document.querySelector('.photography-heading');
   // Bound the companion's width so larger text cannot create a resize loop:
   // a taller tiger would otherwise narrow the copy and make it taller again.
@@ -33,14 +37,33 @@ function sizePhotographyTiger(){
   header.style.setProperty('--photo-tiger-height',`${Math.min(bottom-top,maxHeight)}px`);
   header.style.setProperty('--photo-tiger-offset',`${top-copy.getBoundingClientRect().top}px`);
 }
-document.fonts.ready.then(sizePhotographyTiger);
+function sizeUxMascot(){
+  const copy=document.querySelector('.ux-heading-copy');if(!copy)return;
+  const context=document.createElement('canvas').getContext('2d');
+  const top=inkEdges(copy.querySelector('h1'),context).top,bottom=inkEdges(copy.querySelector('p'),context).bottom;
+  const header=document.querySelector('.ux-heading'),copyRect=copy.getBoundingClientRect();
+  header.style.setProperty('--ux-mascot-height',`${bottom-top}px`);
+  header.style.setProperty('--ux-mascot-offset',`${top-copyRect.top}px`);
+}
+function initMartenGaze(){destroyMartenGaze();destroyMartenGaze=martenGazeFactory?.(document.querySelector('.ux-mascot'))||(()=>{});}
+function initMartenTooltip(){destroyMartenTooltip();destroyMartenTooltip=martenTooltipFactory?.()||(()=>{});}
+function alignPageChrome(){
+  const control=document.querySelector('.weather-control'),main=document.querySelector('main');
+  if(!control||!main)return;
+  control.style.removeProperty('left');control.style.removeProperty('right');
+  if(main.classList.contains('home'))return;
+  const edge=document.querySelector('.collection-grid')||document.querySelector('.article')||main;
+  const right=edge.getBoundingClientRect().right,width=control.getBoundingClientRect().width||168;
+  control.style.left=`${Math.round(right-width)}px`;control.style.right='auto';
+}
+document.fonts.ready.then(()=>{sizePhotographyTiger();sizeUxMascot();});
 function placeTiger(){
   tigerSizeObserver.disconnect();
-  const slot=document.querySelector('.photography-tiger-slot');
+  const slot=document.querySelector('.photography-tiger-slot,.product-tiger-slot');
   (slot||sidebar).append(tigerCompanion);
   tigerCompanion.hidden=!slot;
   tigerCompanion.classList.toggle('tiger-in-heading',Boolean(slot));
-  if(slot){sizePhotographyTiger();tigerSizeObserver.observe(document.querySelector('.photography-heading-copy'));}
+  if(slot?.matches('.photography-tiger-slot')){sizePhotographyTiger();tigerSizeObserver.observe(document.querySelector('.photography-heading-copy'));}
 }
 function bindCard(card){
     card.addEventListener('pointermove',e=>{
@@ -67,9 +90,9 @@ function initPhotoModal(){
     index=(next+photos.length)%photos.length;
     const card=photos[index],source=card.querySelector('.art img'),cardDate=card.querySelector('.meta time');
     image.src=card.dataset.photoSrc;image.alt=source.alt;
-    title.textContent=card.querySelector('h2').textContent;
-    description.textContent=card.querySelector('.card-copy p').textContent;
-    location.textContent=card.querySelector('.photo-location>span').textContent;
+    title.textContent=card.dataset.photoTitle;
+    description.textContent=card.dataset.photoDescription;
+    location.textContent=card.querySelector('.photo-location').textContent;
     camera.textContent=card.querySelector('.meta>span').textContent;
     date.textContent=cardDate.textContent;date.dateTime=cardDate.dateTime;
   }
@@ -87,36 +110,33 @@ function initPhotoModal(){
 }
 function initContent(){
   placeTiger();
+  uxMascotSizeObserver.disconnect();const uxCopy=document.querySelector('.ux-heading-copy');if(uxCopy){sizeUxMascot();uxMascotSizeObserver.observe(uxCopy);}
+  initMartenGaze();
+  initMartenTooltip();
+  alignPageChrome();
   destroyStack();document.querySelectorAll('[data-card]').forEach(bindCard);
   initPhotoModal();
   const grid=document.querySelector('.home-grid');destroyStack=grid?createDeck(grid,bindCard):()=>{};
 }
 function createDeck(grid,bindCard){
-  const template=document.querySelector('#article-deck');
-  const pool=template?[...template.content.children]:[];
-  const shuffleButton=document.querySelector('[data-shuffle]');
-  const status=document.querySelector('[data-deck-status]');
-  let cards=[...grid.children],metrics=[],start=0,range=1,progress=0,hovered=false,keyboardOpen=false,shuffledOpen=false;
-  let busy=false,alive=true,frame=0,resolveMotion=null,entrance=[],samples=[],cooldown=0,queue=[],shuffleFrame=0,finishShuffle=null;
-  let fog=null;
-  import('/fog.js').then(module=>{if(alive)fog=module.createShuffleFog(grid);}).catch(()=>{});
+  const cards=[...grid.querySelectorAll(':scope > .card:not(.home-card-extra)')];
+  let metrics=[],progress=aboutDeckOpened||reduced.matches?1:0,alive=true,frame=0,resolveMotion=null;
   const clamp=v=>Math.max(0,Math.min(1,v));
   const smooth=v=>{v=clamp(v);return v*v*(3-2*v);};
   function stopMotion(){cancelAnimationFrame(frame);frame=0;if(resolveMotion){resolveMotion(false);resolveMotion=null;}}
-  function cancelEntrance(){grid.dataset.entering='false';entrance.forEach(a=>a.cancel());entrance=[];}
   function render(p){
     progress=p;grid.dataset.progress=p.toFixed(3);grid.dataset.open=String(p>.92);
     cards.forEach((card,i)=>{
       const m=metrics[i];if(!m)return;
       card.style.setProperty('--stack-x',`${m.x*(1-p)}px`);
       card.style.setProperty('--stack-y',`${m.y*(1-p)}px`);
-      card.style.setProperty('--stack-r',`${[-7,0,7][i]*(innerWidth<=620?.55:1)*(1-p)}deg`);
-      card.style.setProperty('--stack-scale',String(i===1?1:1-(innerWidth<=620?.065:.025)*(1-p)));
-      card.inert=i!==1&&p<.88;
+      card.style.setProperty('--stack-r',`${m.r*(1-p)}deg`);
+      card.style.setProperty('--stack-scale',String(1-m.s*(1-p)));
+      card.style.zIndex=p>.98?'':String(cards.length-i);
+      card.inert=i!==0&&p<.88;
     });
   }
-  function desired(){return reduced.matches||keyboardOpen||hovered||shuffledOpen?1:smooth((scrollY-start)/range);}
-  function animateTo(to,duration=430){
+  function animateTo(to,duration=650){
     stopMotion();const from=progress;
     if(reduced.matches||Math.abs(to-from)<.002){render(to);return Promise.resolve(true);}
     return new Promise(resolve=>{
@@ -125,163 +145,108 @@ function createDeck(grid,bindCard){
       frame=requestAnimationFrame(tick);
     });
   }
-  function update(){if(busy)return;cancelEntrance();animateTo(desired());}
   function measure(){
-    const top=grid.getBoundingClientRect().top+scrollY;
-    start=Math.max(0,top-innerHeight*.72);
-    const available=document.documentElement.scrollHeight-innerHeight-start;
-    range=Math.max(1,Math.min(420,innerHeight*.45,available-65));
-    metrics=cards.map((card,i)=>({x:(grid.clientWidth-card.offsetWidth)/2-card.offsetLeft+(i-1)*(innerWidth<=620?8:32),y:(i===1?0:18)-card.offsetTop}));
-    if(available<85)keyboardOpen=true;
-    if(!busy)render(frame?progress:desired());
+    // Keep the leading card calm and upright, then reveal the rest of the
+    // deck as a balanced fan from both sides. The final card sits deepest in
+    // the stack so six cards still read as one compact object.
+    const spread=[0,-34,34,-66,66,0],lift=[0,8,8,18,18,27],rotation=[0,-4,4,-8,8,1.5];
+    metrics=cards.map((card,i)=>({
+      x:(grid.clientWidth-card.offsetWidth)/2-card.offsetLeft+spread[i]*(innerWidth<=620?.45:1),
+      y:lift[i]-card.offsetTop,
+      r:rotation[i]*(innerWidth<=620?.62:1),
+      s:i===0?0:.022+(i%3)*.008
+    }));
+    render(progress);
   }
-  async function deal(initial=false){
-    cancelEntrance();
-    if(reduced.matches||keyboardOpen)return;
-    grid.dataset.entering='true';
-    const lift=initial?Math.max(140,Math.min(380,innerHeight-grid.getBoundingClientRect().top+90)):100;
-    entrance=cards.map((card,i)=>card.animate([
-      {opacity:0,translate:`${(i-1)*35}px ${lift}px`,scale:'.92',offset:0},
-      {opacity:1,translate:`${(i-1)*7}px -8px`,scale:'1.01',offset:.76},
-      {opacity:1,translate:'0px 0px',scale:'1',offset:1}
-    ],{duration:initial?760:540,delay:[0,140,70][i],easing:'cubic-bezier(.2,.72,.2,1)',fill:'both'}));
-    await Promise.all(entrance.map(a=>a.finished)).catch(()=>{});
-    if(alive)cancelEntrance();
+  function openDeck(){
+    if(aboutDeckOpened)return Promise.resolve(true);
+    aboutDeckOpened=true;
+    return animateTo(1);
   }
-  function nextThree(){
-    const current=new Set(cards.map(a=>a.getAttribute('href')));
-    queue=queue.filter(a=>!current.has(a.getAttribute('href')));
-    if(queue.length<3){
-      queue=pool.filter(a=>!current.has(a.getAttribute('href')));
-      for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
-    }
-    return queue.splice(0,3).map(a=>document.importNode(a,true));
-  }
-  function replaceContent(card,replacement){
-    card.href=replacement.href;
-    // Keep the physical card and its image frame mounted. Adopt the already
-    // decoded painting in a single frame, instead of rebuilding the whole card.
-    const image=replacement.querySelector('.art img');
-    if(image)card.querySelector('.art img').replaceWith(image);
-    for(const selector of ['.print-label','.card-copy']){
-      card.querySelector(selector).innerHTML=replacement.querySelector(selector).innerHTML;
-    }
-  }
-  function weaveStack(replacements){
-    if(reduced.matches){cards.forEach((card,i)=>replaceContent(card,replacements[i]));return Promise.resolve();}
-    // Move the front card around the outside before changing its depth. The other
-    // two advance while it slips behind them, so no card vanishes or gets re-dealt.
-    const order=[0,2,1],slots=[0,2,1],cycleLength=560;
-    const rect=grid.getBoundingClientRect(),center=rect.left+rect.width/2;
-    const spacing=innerWidth<=620?8:32,rotation=innerWidth<=620?.55:1;
-    const poses=slots.map(i=>({x:(i-1)*spacing,y:i===1?0:18,r:[-7,0,7][i]*rotation,s:i===1?1:(innerWidth<=620?.935:.975)}));
-    cards.forEach(card=>{card.style.height=`${card.offsetHeight}px`;card.style.overflow='hidden';});
-    let cycle=0,began=performance.now(),changed=false;
-    const mix=(a,b,p)=>Object.fromEntries(Object.keys(a).map(k=>[k,a[k]+(b[k]-a[k])*p]));
-    function pose(card,p){
-      const x=(grid.clientWidth-card.offsetWidth)/2-card.offsetLeft+p.x,y=p.y-card.offsetTop;
-      card.style.transform=`translate3d(${x}px,${y}px,0) rotate(${p.r}deg) scale(${p.s})`;
-    }
-    function clean(){
-      cancelAnimationFrame(shuffleFrame);shuffleFrame=0;
-      cards.forEach((card,i)=>{if(card.href!==replacements[i].href)replaceContent(card,replacements[i]);for(const property of ['transform','z-index','height','overflow'])card.style.removeProperty(property);});
-      measure();render(reduced.matches?1:0);
-    }
-    return new Promise(resolve=>{
-      finishShuffle=()=>{clean();finishShuffle=null;resolve();};
-      function tick(now){
-        if(!alive||reduced.matches){finishShuffle();return;}
-        const t=Math.min(1,(now-began)/cycleLength),side=cycle===1?-1:1;
-        // Update only the next card, while the current front card still covers
-        // it. Its new article is then revealed by the physical forward motion.
-        if(!changed){const incoming=order[1];replaceContent(cards[incoming],replacements[incoming]);changed=true;}
-        const outgoing=order[2],card=cards[outgoing];
-        const available=side>0?innerWidth-center-card.offsetWidth/2-18:center-card.offsetWidth/2-18;
-        const reach=Math.max(24,Math.min(card.offsetWidth*1.06+20,available));
-        const excursion={x:side*reach,y:-22,r:side*11,s:.96};
-        const outward=t<.5;
-        const poseFront=outward?mix(poses[2],excursion,smooth(t*2)):mix(excursion,poses[0],smooth((t-.5)*2));
-        pose(card,poseFront);card.style.zIndex=outward?'4':'0';
-        for(let slot=0;slot<2;slot++){
-          const advancing=cards[order[slot]];
-          pose(advancing,mix(poses[slot],poses[slot+1],smooth(t)));advancing.style.zIndex=String(slot+1);
-        }
-        if(t>=1){
-          order.unshift(order.pop());cycle++;changed=false;began=now;
-          if(cycle===3){finishShuffle();return;}
-        }
-        shuffleFrame=requestAnimationFrame(tick);
-      }
-      shuffleFrame=requestAnimationFrame(tick);
-    });
-  }
-  async function reshuffle(pointer){
-    if(busy||!alive||pool.length<6)return;
-    if(pointer?.fog)fog?.burst(pointer.x,pointer.y);
-    busy=true;samples=[];cancelEntrance();cue.classList.remove('active');
-    grid.dataset.shuffling='true';shuffleButton?.setAttribute('aria-busy','true');
-    cards.forEach(a=>a.querySelector('.print').style.transform='');
-    const replacements=nextThree();
-    // Decode the next paintings before showing them; keep the existing cards mounted.
-    const ready=Promise.all(replacements.flatMap(card=>[...card.querySelectorAll('img')].map(img=>img.decode().catch(()=>{}))));
-    const gathered=await animateTo(0,460);if(!gathered||!alive){busy=false;return;}
-    await ready;if(!alive)return;
-    fog?.release();
-    await weaveStack(replacements);if(!alive)return;
-    grid.dataset.deal=String(Number(grid.dataset.deal||0)+1);
-    if(status)status.textContent='Three more articles: '+cards.map(a=>a.querySelector('h2').textContent).join(', ')+'.';
-    shuffledOpen=true;busy=false;grid.dataset.shuffling='false';shuffleButton?.removeAttribute('aria-busy');cooldown=performance.now()+1800;
-    animateTo(desired(),650);
-  }
-  function pointerEnter(e){if(e.pointerType==='mouse'&&pointerMotion.matches){hovered=true;update();}}
-  function pointerLeave(){hovered=false;update();}
-  function pointerMove(e){
-    if(!pointerMotion.matches||e.pointerType!=='mouse'||busy||performance.now()<cooldown||grid.contains(document.activeElement)&&document.activeElement.matches(':focus-visible'))return;
-    const bounds=grid.getBoundingClientRect();if(bounds.top>=innerHeight||bounds.bottom<=0)return;
-    const now=performance.now(),last=samples.at(-1);
-    if(last&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<4)return;
-    samples.push({x:e.clientX,y:e.clientY,t:now});samples=samples.filter(s=>now-s.t<700);
-    let distance=0,reversals=0,previous=null;
-    for(let i=1;i<samples.length;i++){
-      const dx=samples[i].x-samples[i-1].x,dy=samples[i].y-samples[i-1].y,length=Math.hypot(dx,dy);
-      distance+=length;const direction={x:dx/length,y:dy/length};
-      if(previous&&previous.x*direction.x+previous.y*direction.y<-.35)reversals++;
-      previous=direction;
-    }
-    // Match the rapid back-and-forth gesture used to locate the macOS pointer.
-    // Browsers do not expose the operating system's enlarged-cursor state.
-    if(reversals>=2&&distance>120&&now-samples[0].t<500)fog?.trail(e.clientX,e.clientY);
-    if(reversals>=4&&distance>220&&now-samples[0].t>140)reshuffle({fog:true,x:e.clientX,y:e.clientY});
-  }
-  function focus(e){if(e.target.matches(':focus-visible')){keyboardOpen=true;cancelEntrance();stopMotion();render(1);}}
-  function motionChanged(){if(reduced.matches){fog?.clear();cancelEntrance();stopMotion();finishShuffle?.();busy=false;grid.dataset.shuffling='false';shuffleButton?.removeAttribute('aria-busy');render(1);}else measure();}
-  grid.classList.add('stack-live');grid.dataset.entering=String(!reduced.matches);
+  function handleScroll(){if(scrollY>0)openDeck();}
+  function handleHover(){if(pointerMotion.matches)openDeck();}
+  function handleFocus(event){if(event.target.closest('.home-card'))openDeck();}
+  function motionChanged(){if(reduced.matches){aboutDeckOpened=true;stopMotion();render(1);}}
+  grid.classList.add('stack-live');grid.dataset.entering='false';
   const observer=new ResizeObserver(measure);observer.observe(grid);
-  grid.addEventListener('pointerenter',pointerEnter);grid.addEventListener('pointerleave',pointerLeave);grid.addEventListener('focusin',focus);addEventListener('pointermove',pointerMove,{passive:true});
-  shuffleButton?.addEventListener('click',reshuffle);
-  addEventListener('scroll',update,{passive:true});addEventListener('resize',measure);reduced.addEventListener('change',motionChanged);
-  measure();document.fonts.ready.then(()=>{if(alive&&desired()<.02)deal(true);else if(alive)cancelEntrance();});
-  return ()=>{alive=false;fog?.destroy();stopMotion();cancelEntrance();finishShuffle?.();observer.disconnect();removeEventListener('scroll',update);removeEventListener('resize',measure);removeEventListener('pointermove',pointerMove);reduced.removeEventListener('change',motionChanged);shuffleButton?.removeEventListener('click',reshuffle);};
+  grid.addEventListener('focusin',handleFocus);
+  grid.addEventListener('pointerenter',handleHover);
+  addEventListener('scroll',handleScroll,{passive:true});addEventListener('resize',measure);reduced.addEventListener('change',motionChanged);
+  measure();if(scrollY>0)openDeck();
+  document.fonts.ready.then(()=>{if(alive)measure();});
+  return ()=>{alive=false;stopMotion();observer.disconnect();grid.removeEventListener('focusin',handleFocus);grid.removeEventListener('pointerenter',handleHover);removeEventListener('scroll',handleScroll);removeEventListener('resize',measure);reduced.removeEventListener('change',motionChanged);};
 }
 
 function updateProgress(){const p=document.querySelector('.reading-progress');if(p){const range=document.documentElement.scrollHeight-innerHeight;p.style.transform=`scaleX(${range>0?Math.min(1,scrollY/range):1})`;}}
 addEventListener('scroll',updateProgress,{passive:true});addEventListener('resize',updateProgress);
+addEventListener('resize',alignPageChrome);
 addEventListener('blur',()=>cue.classList.remove('active'));
 initContent();updateProgress();
+document.fonts.ready.then(alignPageChrome);
 
 // The painted companion stays in place across page navigation.
 const logo=document.querySelector('.logo-tiger');
 import('/tiger-gaze.js').then(m=>m.createSeatedTiger(logo)).catch(console.error);
+import('/marten-gaze.js').then(m=>{martenGazeFactory=m.createMartenGaze;initMartenGaze();}).catch(console.error);
+import('/marten-tooltip.js').then(m=>{martenTooltipFactory=m.initMartenTooltip;initMartenTooltip();}).catch(console.error);
 import('/tiger-tooltip.js').then(m=>m.initTigerTooltip()).catch(console.error);
 const navigation=document.querySelector('nav[aria-label="Main navigation"]');
 const links=[...navigation.querySelectorAll('a')];let controller=null,profileExitTimer=0;
+const navIndicator=navigation.querySelector('.nav-indicator');
+let navIndicatorY=null,navIndicatorAnimation=null;
+function moveNavIndicator(link,animate=true){
+  if(!link||!navIndicator)return;
+  const target=link.offsetTop+(link.offsetHeight-navIndicator.offsetHeight)/2;
+  if(navIndicatorY===null||!animate||reduced.matches){
+    navIndicatorAnimation?.cancel();navIndicatorAnimation=null;navIndicatorY=target;
+    navIndicator.style.transform=`translateY(${target}px)`;
+    return;
+  }
+  const start=navIndicatorY,distance=target-start;
+  if(Math.abs(distance)<.5)return;
+  navIndicatorAnimation?.cancel();
+  const turning=.2,keyframes=[
+    {transform:`translateY(${start}px) rotate(0deg)`,offset:0},
+    {transform:`translateY(${start}px) rotate(45deg)`,offset:turning}
+  ];
+  if(distance>0){
+    // Free fall: displacement grows with time squared under constant gravity.
+    for(let step=1;step<=8;step++){
+      const time=step/8,position=start+distance*time*time;
+      keyframes.push({transform:`translateY(${position}px) rotate(${45+315*time}deg)`,offset:turning+.66*time});
+    }
+    keyframes.push(
+      {transform:`translateY(${target+3}px) rotate(360deg) scaleX(1.18) scaleY(.76)`,offset:.9},
+      {transform:`translateY(${target-2}px) rotate(360deg) scaleX(.94) scaleY(1.08)`,offset:.95},
+      {transform:`translateY(${target}px) rotate(360deg) scale(1)`,offset:1}
+    );
+  }else{
+    // Moving upward behaves like a small launch against gravity: fast first,
+    // then progressively slower as it reaches the selected tab.
+    for(let step=1;step<=8;step++){
+      const time=step/8,position=start+distance*(2*time-time*time);
+      keyframes.push({transform:`translateY(${position}px) rotate(${45+315*time}deg)`,offset:turning+.76*time});
+    }
+    keyframes.push({transform:`translateY(${target}px) rotate(360deg)`,offset:1});
+  }
+  const travel=Math.sqrt(2*Math.abs(distance)/1700)*1000;
+  navIndicatorAnimation=navIndicator.animate(keyframes,{duration:Math.max(430,Math.min(760,170+travel+120)),easing:'linear'});
+  navIndicatorY=target;
+  navIndicatorAnimation.addEventListener('finish',()=>{navIndicator.style.transform=`translateY(${target}px)`;navIndicatorAnimation=null;},{once:true});
+}
+document.fonts.ready.then(()=>moveNavIndicator(links.find(link=>link.hasAttribute('aria-current')),false));
+addEventListener('resize',()=>moveNavIndicator(links.find(link=>link.hasAttribute('aria-current')),false));
 async function navigate(url,{push=true}={}){
   controller?.abort();controller=new AbortController();const signal=controller.signal;
   const nextLink=links.find(a=>a.pathname===url.pathname)||links.find(a=>a.pathname!=='/'&&url.pathname.startsWith(a.pathname))||links[0];
+  moveNavIndicator(nextLink,true);
   try{
     const response=await fetch(url,{signal});if(!response.ok)throw Error('Page unavailable');
     const html=new DOMParser().parseFromString(await response.text(),'text/html');if(signal.aborted)return;
     const main=html.querySelector('main');if(!main)throw Error('Missing page');
+    // The full signature writes only on the initial Me landing. A fetched
+    // Me page receives the completed signature immediately.
+    main.querySelector('.personal-name')?.classList.remove('signature-intro');
     const wasHome=document.querySelector('main').classList.contains('home');
     document.querySelector('main').replaceWith(main);document.title=html.title;
     const showSidebarProfile=!main.classList.contains('home');

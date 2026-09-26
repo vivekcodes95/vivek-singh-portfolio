@@ -49,7 +49,35 @@ Interaction research: [Codrops magnetic buttons](https://tympanus.net/codrops/20
 
 > Original square editorial gouache and risograph-like landscape inspired by Uttarakhand foothills and sal forest near Corbett. Layered emerald and blue-green hills, simplified leafy forest silhouettes, small pale winding river, light morning mist. Refined painterly illustration with subtle fine grain; readable at small size. Nearly white negative space across the top 40 percent, landscape in lower 60 percent. Peaceful, restrained morning mood. Deep emerald, blue-green, mint mist, warm white sky. No frame, animals, people, text, logos, watermark, buildings, or decorative graphics. Not a photograph; no reference copying.
 
-No site was registered, hosted, or deployed.
+Deployment is configured below; GitHub Pages and DNS require the one-time account setup described there.
+
+## Deploy to VivekDesigns.com
+
+The site is published from `dist` by `.github/workflows/deploy-pages.yml`. Every push to `main` rebuilds the site, validates all generated pages and local references, and deploys the result to GitHub Pages. The workflow can also be run manually from the repository's **Actions** tab.
+
+Routine publishing is:
+
+```sh
+npm run build
+npm run check
+git add -A
+git commit -m "Describe the site update"
+git push origin main
+```
+
+The one-time GitHub setup is **Settings → Pages → Source: GitHub Actions**, followed by setting the custom domain to `vivekdesigns.com` and enabling HTTPS once GitHub makes that option available.
+
+The GoDaddy DNS zone should contain these GitHub Pages records:
+
+| Type | Name | Value |
+| --- | --- | --- |
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `vivekcodes95.github.io` |
+
+Remove conflicting `@` A records, `www` records, forwarding rules, and wildcard records before adding these. Keep the `www` record even though the apex domain is primary; GitHub will redirect it to `vivekdesigns.com`. DNS and HTTPS provisioning can take up to 24 hours.
 
 ## Walking tiger logo and homepage cards
 
