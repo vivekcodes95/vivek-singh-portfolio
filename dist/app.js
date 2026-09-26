@@ -15,6 +15,7 @@ const tigerSizeObserver=new ResizeObserver(()=>sizePhotographyTiger());
 const uxMascotSizeObserver=new ResizeObserver(()=>sizeUxMascot());
 let martenGazeFactory=null,destroyMartenGaze=()=>{};
 let martenTooltipFactory=null,destroyMartenTooltip=()=>{};
+let pageChromePlaced=false;
 function inkEdges(element,context){
   const style=getComputedStyle(element),rect=element.getBoundingClientRect();
   context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
@@ -50,18 +51,33 @@ function initMartenTooltip(){destroyMartenTooltip();destroyMartenTooltip=martenT
 function alignPageChrome(){
   const control=document.querySelector('.weather-control'),main=document.querySelector('main');
   if(!control||!main)return;
-  control.style.removeProperty('left');control.style.removeProperty('right');
-  if(main.classList.contains('home'))return;
+  const current=control.getBoundingClientRect(),width=current.width||168;
+  const homeX=innerWidth-width-(innerWidth<=1200?18:50);
   const edge=document.querySelector('.collection-grid')||document.querySelector('.article')||main;
-  const right=edge.getBoundingClientRect().right,width=control.getBoundingClientRect().width||168;
-  control.style.left=`${Math.round(right-width)}px`;control.style.right='auto';
+  const target=main.classList.contains('home')?homeX:edge.getBoundingClientRect().right-width;
+  const start=current.left;
+
+  control.classList.remove('weather-control-moving');
+  control.style.right='auto';
+  control.style.left=`${Math.round(start)}px`;
+  if(!pageChromePlaced||reduced.matches||Math.abs(start-target)<1){
+    control.classList.remove('weather-control-moving');
+    control.style.left=`${Math.round(target)}px`;
+    pageChromePlaced=true;
+    return;
+  }
+
+  pageChromePlaced=true;
+  void control.offsetWidth;
+  control.classList.add('weather-control-moving');
+  control.style.left=`${Math.round(target)}px`;
 }
 document.fonts.ready.then(()=>{sizePhotographyTiger();sizeUxMascot();});
 function placeTiger(){
   tigerSizeObserver.disconnect();
   const slot=document.querySelector('.photography-tiger-slot,.product-tiger-slot');
   (slot||sidebar).append(tigerCompanion);
-  tigerCompanion.hidden=!slot;
+  tigerCompanion.hidden=false;
   tigerCompanion.classList.toggle('tiger-in-heading',Boolean(slot));
   if(slot?.matches('.photography-tiger-slot')){sizePhotographyTiger();tigerSizeObserver.observe(document.querySelector('.photography-heading-copy'));}
 }
@@ -179,7 +195,7 @@ function createDeck(grid,bindCard){
 
 function updateProgress(){const p=document.querySelector('.reading-progress');if(p){const range=document.documentElement.scrollHeight-innerHeight;p.style.transform=`scaleX(${range>0?Math.min(1,scrollY/range):1})`;}}
 addEventListener('scroll',updateProgress,{passive:true});addEventListener('resize',updateProgress);
-addEventListener('resize',alignPageChrome);
+addEventListener('resize',()=>{pageChromePlaced=false;alignPageChrome();});
 addEventListener('blur',()=>cue.classList.remove('active'));
 initContent();updateProgress();
 document.fonts.ready.then(alignPageChrome);

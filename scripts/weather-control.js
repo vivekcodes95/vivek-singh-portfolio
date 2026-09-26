@@ -53,6 +53,7 @@ host.insertAdjacentHTML('beforeend',`<canvas class="weather-rope rope-grip-overl
   document.addEventListener('pointerdown',event=>{if(!monkey.contains(event.target)&&!tooltip.contains(event.target))hideTooltip();});
   const count=13,length=6;let anchor=140,targetAnchor=140,frame=0,drag=null,lastTime=0,accumulator=0,initialized=false,windClock=0;
   const points=Array.from({length:count},(_,i)=>({x:anchor,y:49+i*length,px:anchor,py:49+i*length}));
+  let previousHostX=host.getBoundingClientRect().left;
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   function alongRope(distance){
     for(let i=1;i<points.length;i++){
@@ -63,20 +64,26 @@ host.insertAdjacentHTML('beforeend',`<canvas class="weather-rope rope-grip-overl
     return points.at(-1);
   }
   function render(){
-    drawRope(points);
+    const availableWidth=innerWidth-host.getBoundingClientRect().left+56;
+    drawRope(points,null,availableWidth);
     const tip=points.at(-1);
     const prev=points.at(-2),angle=Math.atan2(tip.x-prev.x,tip.y-prev.y)*-180/Math.PI;
     knot.style.left=`${tip.x-56}px`;knot.style.top=`${tip.y}px`;knot.style.transform=`translate(-50%,-8px) rotate(${angle}deg)`;
     // Both hands follow a fixed-length span of cord, even when it is pulled.
-    const monkeySize=innerWidth<=1100?80:96,scale=monkeySize/128;
+    const monkeySize=monkey.offsetWidth,scale=monkeySize/128;
     const grip=alongRope(18),lowerGrip=alongRope(18+33*scale),lean=-Math.atan2(lowerGrip.x-grip.x,lowerGrip.y-grip.y)*180/Math.PI;
     // Mirrored hands grip the same textured canvas cord; no separate rope asset.
     const handX=(128-94)*scale,handY=9*scale;
     monkey.style.left=`${grip.x-56-handX}px`;monkey.style.top=`${grip.y-handY}px`;monkey.style.transformOrigin=`${handX}px ${handY}px`;monkey.style.transform=`rotate(${lean}deg)`;
     tooltip.style.top=`${Math.max(160,grip.y+monkeySize)}px`;
-    drawGripRope(points,[[18+7*scale,18+27*scale],[18+41*scale,18+58*scale]]);
+    drawGripRope(points,[[18+7*scale,18+27*scale],[18+41*scale,18+58*scale]],availableWidth);
   }
-  function step(){
+  function step(hostShift=0){
+    // Preserve each free point's world position and momentum while its mount
+    // moves. The fixed anchor then pulls the weighted cord along behind it.
+    if(!reduced.matches)for(let i=1;i<count;i++){
+      points[i].x-=hostShift;points[i].px-=hostShift;
+    }
     anchor+=(targetAnchor-anchor)*.12;points[0].x=anchor;points[0].y=49;
     windClock+=1/60;
     const breeze=!drag?(Math.sin(windClock*.34)+Math.sin(windClock*.13+1.4)*.28)*.0032:0;
@@ -99,11 +106,16 @@ host.insertAdjacentHTML('beforeend',`<canvas class="weather-rope rope-grip-overl
   function tick(now){
     frame=0;if(document.hidden)return;
     accumulator+=Math.min((now-lastTime)||16.67,50);lastTime=now;
-    while(accumulator>=16.67){step();accumulator-=16.67;}
+    const steps=Math.floor(accumulator/16.67),hostX=host.getBoundingClientRect().left;
+    if(steps){
+      const shift=(hostX-previousHostX)/steps;
+      for(let i=0;i<steps;i++){step(shift);accumulator-=16.67;}
+      previousHostX=hostX;
+    }
     render();const moving=drag||Math.abs(targetAnchor-anchor)>.05||points.some(p=>Math.abs(p.x-p.px)+Math.abs(p.y-p.py)>.035);
     if(moving||!reduced.matches)frame=requestAnimationFrame(tick);
   }
-  function wake(){if(!frame){lastTime=performance.now();frame=requestAnimationFrame(tick);}}
+  function wake(){if(!frame){previousHostX=host.getBoundingClientRect().left;lastTime=performance.now();frame=requestAnimationFrame(tick);}}
   function sync(mode,announce=false){
     host.querySelectorAll('[data-weather]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.weather===mode)));
     targetAnchor=84+56*modes.indexOf(mode);
@@ -122,5 +134,6 @@ host.insertAdjacentHTML('beforeend',`<canvas class="weather-rope rope-grip-overl
   knot.addEventListener('click',e=>{if(e.detail===0)cycle();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){release(true);cancelAnimationFrame(frame);frame=0;}else wake();});
   reduced.addEventListener('change',()=>{if(reduced.matches){cancelAnimationFrame(frame);frame=0;sync(document.documentElement.dataset.theme);}else wake();});
+  addEventListener('resize',()=>{previousHostX=host.getBoundingClientRect().left;render();});
   render();return sync;
 }

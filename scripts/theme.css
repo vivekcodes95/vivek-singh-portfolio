@@ -41,7 +41,8 @@ main{position:relative;z-index:1}
 
 [data-theme="night"]{--page:#050607;--surface:#121416;--ink:#e7e9ec;--muted:#acb1b8;--green:#b0c5b7;--line:#2b3034;--soft:#1d2325;--night-muted:#acb1b8;--toggle-border:#363e42}
 .weather-control{position:fixed;top:max(50px,env(safe-area-inset-top));right:max(50px,env(safe-area-inset-right));width:168px;height:54px;z-index:65;isolation:isolate}
-body:has(main:not(.home)) :is(.weather-rope,.rope-knot,.rope-monkey,.monkey-tooltip){display:none!important}
+.weather-control-moving{transition:left 720ms cubic-bezier(.45,0,.55,1)}
+@media(prefers-reduced-motion:reduce){.weather-control-moving{transition:none}}
 body:has(main:not(.home)) .weather-control{position:absolute}
 .weather-defs{position:absolute;pointer-events:none}
 .weather-bar{position:relative;z-index:2;display:flex;padding:0;border:1px solid var(--toggle-border);border-radius:28px;background:var(--surface);box-shadow:0 3px 12px #15271d0a,inset 0 1px 0 #ffffff26}

@@ -35,7 +35,7 @@ try{
  const rain=await page.locator('.night-scene').evaluate(c=>c.toDataURL());await page.waitForTimeout(180);assert.notEqual(await page.locator('.night-scene').evaluate(c=>c.toDataURL()),rain);
  assert.equal(await page.locator('.forest-audio-toggle').count(),0);
  await page.screenshot({path:'qa/weather/rain.png'});
- await page.getByRole('navigation').getByRole('link',{name:'UX Design',exact:true}).click();await page.waitForURL('**/ux-design/');assert.equal(await mode(),'rain');assert.equal(await page.locator('.weather-control').count(),1);assert.equal(await page.locator('.rope-monkey').isVisible(),false);assert.equal(await page.locator('.weather-rope').first().isVisible(),false);
+ await page.getByRole('navigation').getByRole('link',{name:'UX Design',exact:true}).click();await page.waitForURL('**/ux-design/');assert.equal(await mode(),'rain');assert.equal(await page.locator('.weather-control').count(),1);assert.equal(await page.locator('.rope-monkey').isVisible(),true);assert.equal(await page.locator('.weather-rope').first().isVisible(),true);
  await page.reload();assert.equal(await mode(),'rain');
  await page.screenshot({path:'qa/weather/collection.png'});
  await page.getByRole('button',{name:'Day mode',exact:true}).click();assert.equal(await mode(),'day');

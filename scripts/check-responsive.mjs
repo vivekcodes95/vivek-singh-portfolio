@@ -54,8 +54,8 @@ try {
           return Math.abs(header.left-grid.left)<1&&Math.abs(weather.right-grid.right)<1&&Math.abs((grid.left+grid.right)/2-innerWidth/2)<1;
         });
         assert.equal(aligned,true,`${route} header or mode selector is misaligned at ${width}`);
-        assert.equal(await page.locator('.rope-monkey').isVisible(),false,`${route} still shows the mode-selector monkey at ${width}`);
-        assert.equal(await page.locator('.weather-rope').first().isVisible(),false,`${route} still shows the mode-selector rope at ${width}`);
+        assert.equal(await page.locator('.rope-monkey').isVisible(),true,`${route} hides the mode-selector monkey at ${width}`);
+        assert.equal(await page.locator('.weather-rope').first().isVisible(),true,`${route} hides the mode-selector rope at ${width}`);
         if (width === 2560) {
           const columns = await page.locator('.collection-grid').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
           assert.equal(columns, route === '/photography/' ? 3 : 4, `${route} wide-screen column count is incorrect`);
@@ -101,8 +101,8 @@ try {
     for (const mode of ['day', 'night', 'rain']) {
       await page.locator(`[data-weather="${mode}"]`).click();
       assert.equal(await page.locator('html').getAttribute('data-theme'), mode);
-      assert.equal(await page.locator('.rope-monkey').isVisible(),false,`Inner-page monkey visible at ${width} ${mode}`);
-      assert.equal(await page.locator('.weather-rope').first().isVisible(),false,`Inner-page rope visible at ${width} ${mode}`);
+      assert.equal(await page.locator('.rope-monkey').isVisible(),true,`Inner-page monkey hidden at ${width} ${mode}`);
+      assert.equal(await page.locator('.weather-rope').first().isVisible(),true,`Inner-page rope hidden at ${width} ${mode}`);
     }
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });

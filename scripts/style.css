@@ -72,8 +72,8 @@ nav a:hover{background:transparent}
 .sidebar-content nav{position:fixed;top:25vh;left:30px;width:calc(var(--sidebar) - 55px);transform:none}
 @media(max-width:620px){.sidebar-content nav{position:relative;top:auto;left:auto;width:auto;transform:none}}
 .sidebar>.sidebar-content{height:100%;padding-top:0}.origin{gap:4px}.origin .wordmark{margin-left:-7px}
-/* Align the outer left knee (source x=246) with the navigation text. */
-.sidebar-bottom{--tiger-height:220px;position:fixed;left:calc(50px - var(--tiger-height) * 65 / 1213);right:auto;bottom:0;margin:0;padding:0;z-index:40}.origin .wordmark{margin-left:0;width:calc(var(--tiger-height) * 843 / 1213);height:var(--tiger-height)}
+/* The cropped artwork shares the navigation text's left edge and sits on the viewport floor. */
+.sidebar-bottom{--tiger-height:143px;position:fixed;left:calc(50px - var(--tiger-height) * 210 / 1213);right:auto;bottom:0;margin:0;padding:0;z-index:40}.origin .wordmark{margin-left:0;width:calc(var(--tiger-height) * 843 / 1213);height:var(--tiger-height)}
 .sidebar-bottom[hidden]{display:none!important}
 .sidebar-profile{display:none;position:absolute;top:50px;left:50px;width:136px;align-items:flex-start;flex-direction:column;gap:7px;color:var(--name-ink)}
 .sidebar.has-profile .sidebar-profile{display:flex}.sidebar-profile-photo{display:block;width:68px;height:68px;border-radius:50%;overflow:hidden;border:3px solid var(--surface);outline:1px solid var(--line);box-shadow:0 7px 18px #19332212}.sidebar-profile-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 38%}
@@ -100,8 +100,8 @@ nav a:hover{background:transparent}
 @keyframes sidebar-signature-write{0%{opacity:.2;clip-path:inset(0 100% 0 0)}12%{opacity:1}100%{opacity:1;clip-path:inset(0 0 0 0)}}
 @keyframes sidebar-signature-erase{0%{opacity:1;clip-path:inset(0 0 0 0)}100%{opacity:0;clip-path:inset(0 100% 0 0)}}
 .home{overflow-x:clip}
-@media(max-width:620px){.sidebar>.sidebar-content{height:auto;padding-top:10px}.sidebar.has-profile .sidebar-profile{display:none}.sidebar-bottom{--tiger-height:112px;display:block;left:calc(42px - var(--tiger-height) * 65 / 1213);right:auto;bottom:0}}
-@media(min-width:621px) and (max-height:760px){.sidebar-bottom{--tiger-height:148px}}
+@media(max-width:620px){.sidebar>.sidebar-content{height:auto;padding-top:10px}.sidebar.has-profile .sidebar-profile{display:none}.sidebar-bottom{--tiger-height:72.8px;display:block;right:auto;bottom:0}}
+@media(min-width:621px) and (max-height:760px){.sidebar-bottom{--tiger-height:96.2px}}
 @media(prefers-reduced-motion:reduce){.sidebar.profile-arriving .sidebar-profile-photo,.sidebar.profile-arriving .sidebar-profile-name,.sidebar.profile-leaving .sidebar-profile-photo,.sidebar.profile-leaving .sidebar-profile-name{animation:none}}
 /* Keep each title area level across both card rows. */
 .personal-name{color:var(--name-ink);margin:0 auto 16px}
@@ -126,6 +126,7 @@ nav a:hover{background:transparent}
   .sidebar.menu-open{z-index:70}
   .sidebar.menu-open .sidebar-content{display:block;max-height:calc(100dvh - 72px);overflow-y:auto;background:var(--page);box-shadow:0 16px 20px #1b321410}
   .sidebar-content nav{position:relative;top:auto;left:auto;width:auto;transform:none}
+  .sidebar-bottom{--tiger-height:72.8px;left:calc(var(--compact-gutter) + 12px)}
   nav a{min-height:44px;padding:13px 12px;font-size:.9375rem}
   main{margin-left:0;padding:24px var(--compact-gutter) 0}
   main.collection,main.reading{padding-top:110px;padding-bottom:var(--compact-gutter)}
@@ -172,7 +173,7 @@ nav a::before{display:none}
 .ux-card .print{padding:10px}
 .ux-card .card-copy{padding-top:16px}
 .collection-grid:not(.photography-grid){gap:32px}
-.site-footer{width:min(100%,1120px);margin:clamp(52px,7vw,96px) 0 0;padding:23px 0 25px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;color:#687362;font-size:.75rem}.site-footer>span{letter-spacing:.12em;text-transform:uppercase;opacity:.72}.social-icons{display:flex;align-items:center;gap:14px}.social-icon{display:grid;place-items:center;width:34px;height:34px;color:var(--green);transition:color .25s,opacity .25s,transform .2s}.social-icon svg{width:20px;height:20px;stroke-width:1.45}.social-icon:hover{opacity:.72;transform:translateY(-1px)}
+.site-footer{width:min(100%,1120px);margin:clamp(52px,7vw,96px) 0 0;padding:23px 0;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;color:#687362;font-size:.75rem}.site-footer>span{letter-spacing:.12em;text-transform:uppercase;opacity:.72}.social-icons{display:flex;align-items:center;gap:14px}.social-icon{display:grid;place-items:center;width:34px;height:34px;color:var(--green);transition:color .25s,opacity .25s,transform .2s}.social-icon svg{width:20px;height:20px;stroke-width:1.45}.social-icon:hover{opacity:.72;transform:translateY(-1px)}
 
 /* Balance the visible sidebar with an equal invisible gutter on the right. */
 @media(min-width:1201px){

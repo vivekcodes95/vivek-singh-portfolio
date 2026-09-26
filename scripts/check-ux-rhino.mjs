@@ -6,8 +6,8 @@ try{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:4173/ux-design/');await page.evaluate(()=>document.fonts.ready);
   assert.equal(await page.locator('.product-tiger-slot,.photography-tiger-slot,.ux-mascot-slot').count(),0,'A title mascot remains on Product Design');
-  assert.equal(await page.locator('.rope-monkey').isVisible(),false,'The mode-selector monkey remains visible off the homepage');
-  assert.equal(await page.locator('.weather-rope').first().isVisible(),false,'The mode-selector rope remains visible off the homepage');
+  assert.equal(await page.locator('.rope-monkey').isVisible(),true,'The mode-selector monkey is available off the homepage');
+  assert.equal(await page.locator('.weather-rope').first().isVisible(),true,'The mode-selector rope is available off the homepage');
   const alignment=await page.evaluate(()=>{
     const header=document.querySelector('.collection-header').getBoundingClientRect(),grid=document.querySelector('.collection-grid').getBoundingClientRect(),weather=document.querySelector('.weather-control').getBoundingClientRect();
     return {headerLeft:header.left,gridLeft:grid.left,weatherRight:weather.right,gridRight:grid.right};
@@ -40,7 +40,7 @@ try{
   assert.equal(await page.locator('.photography-tiger-slot,.product-tiger-slot,.ux-mascot-slot').count(),0,'A title mascot remains on Photography');
   await page.getByRole('link',{name:'Product Design',exact:true}).click();
   await page.waitForURL('**/ux-design/');
-  assert.equal(await page.locator('.rope-monkey').isVisible(),false,'The mode-selector monkey returned after tab navigation');
+  assert.equal(await page.locator('.rope-monkey').isVisible(),true,'The mode-selector monkey remains available after tab navigation');
   for(const [width,height] of [[1440,1000],[768,1024],[390,844]]){
     await page.setViewportSize({width,height});
     for(const route of ['/ux-design/','/spatial-design/','/photography/','/ai-projects/']){
@@ -52,7 +52,7 @@ try{
       assert.ok(Math.abs(state.headerLeft-state.gridLeft)<1,`${route} heading is misaligned at ${width}px`);
       assert.ok(Math.abs(state.weatherRight-state.gridRight)<1,`${route} mode selector is misaligned at ${width}px`);
       assert.equal(state.mascots,0,`${route} retains a title mascot at ${width}px`);
-      assert.equal(state.ropeVisible,false,`${route} retains rope or monkey decoration at ${width}px`);
+      assert.equal(state.ropeVisible,true,`${route} hides the rope or monkey decoration at ${width}px`);
     }
   }
   assert.deepEqual(errors,[]);

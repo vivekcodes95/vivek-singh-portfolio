@@ -87,8 +87,12 @@ export function createRopeRenderer(canvas){
   const upperBridge=bezier([-.8,2.1],[[.7,2.5,2.5,3,4,4]]);
   const middleBridge=bezier([2.2,5.6],[[3.5,7.8,5.1,9.4,5.7,11.4]]);
   const lowerBridge=bezier([-2,16],[[-3.6,17.6,-3.3,19.1,-2.4,21]]);
-  return function render(points,cordRanges=null){
+  return function render(points,cordRanges=null,availableWidth=280){
     if(!context)return;
+    // Trim only the empty canvas beyond the viewport, without stretching the cord.
+    const width=Math.max(1,Math.min(280,availableWidth));
+    if(canvas.width!==Math.round(width*ratio))canvas.width=Math.round(width*ratio);
+    canvas.style.width=`${width}px`;
     context.setTransform(ratio,0,0,ratio,0,0);context.clearRect(0,0,280,260);
     const samples=smooth(points);
     if(cordRanges){
