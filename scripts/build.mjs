@@ -92,5 +92,5 @@ await copyFile('scripts/marten-tooltip.js','dist/marten-tooltip.js');
 await copyFile('scripts/tiger-tooltip.js','dist/tiger-tooltip.js');
 await rm('dist/duowallet',{recursive:true,force:true});
 await mkdir('dist/duowallet',{recursive:true});
-await writeFile('dist/duowallet/index.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0; url=https://duoawallet.vivekdesigns.com/"><link rel="canonical" href="https://duoawallet.vivekdesigns.com/"><title>Duo Wallet · Vivek Singh</title></head><body><p>Duo Wallet has moved to <a href="https://duoawallet.vivekdesigns.com/">duoawallet.vivekdesigns.com</a>.</p></body></html>');
+await writeFile('dist/duowallet/index.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0; url=https://duowallet.vivekdesigns.com/"><link rel="canonical" href="https://duowallet.vivekdesigns.com/"><title>Duo Wallet · Vivek Singh</title></head><body><p>Duo Wallet has moved to <a href="https://duowallet.vivekdesigns.com/">duowallet.vivekdesigns.com</a>.</p></body></html>');
 console.log(`Built home, ${sections.length} collections, and ${posts.length} detail pages. Landscape asset: ${landscape}.`);
