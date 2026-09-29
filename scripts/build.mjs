@@ -1,4 +1,4 @@
-import { mkdir, writeFile, copyFile, access } from 'node:fs/promises';
+import { mkdir, writeFile, copyFile, access, cp } from 'node:fs/promises';
 import { profile, sections, posts } from './content.mjs';
 import { signatureSvg } from './signature.mjs';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -90,4 +90,6 @@ await copyFile('scripts/tiger-gaze.js','dist/tiger-gaze.js');
 await copyFile('scripts/marten-gaze.js','dist/marten-gaze.js');
 await copyFile('scripts/marten-tooltip.js','dist/marten-tooltip.js');
 await copyFile('scripts/tiger-tooltip.js','dist/tiger-tooltip.js');
+await mkdir('dist/duowallet',{recursive:true});
+await cp('projects/duowallet','dist/duowallet',{recursive:true,force:true});
 console.log(`Built home, ${sections.length} collections, and ${posts.length} detail pages. Landscape asset: ${landscape}.`);
