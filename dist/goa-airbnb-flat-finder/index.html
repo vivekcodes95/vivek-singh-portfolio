@@ -6,7 +6,7 @@
 <title>Goa Airbnb Flat Finder – monthly rentals on a map</title>
 <meta name="robots" content="noindex">
 <meta name="description" content="92 Goa flats on monthly rent mapped against beaches, nightlife and transport, with estimated Airbnb profit.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://tile.openstreetmap.org"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
@@ -214,7 +214,15 @@ const vColor = v => css(v==='Strong'?'--strong':v==='Marginal'?'--marginal':'--l
 // ---- map ----
 const map = L.map('map',{zoomControl:false, preferCanvas:false}).setView([15.43,73.87],10);
 L.control.zoom({position:'topright'}).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+// Basemaps that need no API key. If the street tiles fail repeatedly, fall back to Esri streets.
+const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'});
+const esriStreets = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors'});
+const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics'});
+osm.addTo(map);
+let osmErrors=0, osmLoaded=false;
+osm.on('tileload',()=>{osmLoaded=true;});
+osm.on('tileerror',()=>{ if(!osmLoaded && ++osmErrors>=4 && map.hasLayer(osm)){ map.removeLayer(osm); esriStreets.addTo(map); } });
+L.control.layers({'Streets':osm,'Streets (alt)':esriStreets,'Satellite':esriSat},null,{position:'topright',collapsed:true}).addTo(map);
 const hotLayer = L.layerGroup().addTo(map), listLayer = L.layerGroup().addTo(map);
 let radiusCircle=null, radius=null;
 
@@ -383,7 +391,7 @@ document.getElementById('resetModel').onclick=()=>{ Object.assign(M,DEF); ['rate
 addEventListener('resize',()=>legend());
 
 L0.forEach(calc); buildChips(); render();
-map.fitBounds(L.latLngBounds(L0.map(l=>[l.lat,l.lng])).pad(0.08));
+map.fitBounds(L.latLngBounds(L0.map(l=>[l.lat,l.lng])).pad(0.05), isMobile()?{paddingTopLeft:[10,50],paddingBottomRight:[10,130]}:{padding:[20,20]});
 if(isMobile()) side.classList.add('collapsed');
 })();
 </script>
