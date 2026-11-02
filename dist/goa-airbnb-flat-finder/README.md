@@ -26,4 +26,4 @@ python3 -m http.server
 ```
 Then open http://localhost:8000. The site is static: no build step, and Leaflet is bundled in `vendor/`.
 
-Map tiles © OpenStreetMap contributors; satellite imagery © Esri. Not financial or legal advice.
+Static map boundaries © DataMeet (CC BY 4.0). Online map tiles © OpenStreetMap contributors; satellite imagery © Esri. Not financial or legal advice.

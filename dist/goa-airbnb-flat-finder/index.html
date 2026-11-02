@@ -73,6 +73,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .legend .dia{width:10px;height:10px;transform:rotate(45deg);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
 .radiusbar{position:absolute;left:50%;transform:translateX(-50%);top:12px;z-index:450;background:var(--ink);color:#fff;border-radius:999px;padding:7px 8px 7px 14px;display:none;align-items:center;gap:10px;font-size:13px;box-shadow:0 4px 18px rgba(0,0,0,.2)}
 .radiusbar button{background:#fff;color:var(--ink);border:0;border-radius:999px;padding:4px 10px;font-weight:600;cursor:pointer}
+.leaflet-container{background:#cfe3ec}
+.maplabel span{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap}
+.maplabel{pointer-events:none;font-family:Inter,system-ui,sans-serif;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff}
+.maplabel.town{font-size:11px;color:#5b5446;font-weight:500}
+.maplabel.town.big{font-size:12.5px;color:#2f2a22;font-weight:700}
+.maplabel.region{font-size:11px;letter-spacing:.18em;color:#9a917f;font-weight:600}
+.maplabel.sea{font-size:13px;font-style:italic;color:#5f8796;letter-spacing:.08em;text-shadow:none}
 .hs-icon{width:16px;height:16px;transform:rotate(45deg);border:2.5px solid #fff;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .leaflet-popup-content{margin:12px 14px;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.45;min-width:240px}
 .pp h4{margin:0 0 2px;font-size:15px}
@@ -214,15 +221,27 @@ const vColor = v => css(v==='Strong'?'--strong':v==='Marginal'?'--marginal':'--l
 // ---- map ----
 const map = L.map('map',{zoomControl:false, preferCanvas:false}).setView([15.43,73.87],10);
 L.control.zoom({position:'topright'}).addTo(map);
-// Basemaps that need no API key. If the street tiles fail repeatedly, fall back to Esri streets.
+// Base maps. Default is a static map bundled with the site (no tile server needed).
+const BM = await fetch('data/goa-basemap.geojson').then(r=>r.json());
+const bmStyle = f => f.properties.kind==='goa' ? {color:'#9d9584',weight:1.4,fillColor:'#f7f3ea',fillOpacity:1}
+  : f.properties.kind==='neighbour' ? {color:'#c9c2b3',weight:1,fillColor:'#e6e2d8',fillOpacity:1}
+  : {color:'#a99f8b',weight:1,dashArray:'4 4',fill:false};
+const towns = [['Panaji',15.4909,73.8278,1],['Mapusa',15.5915,73.8090,1],['Margao',15.2832,73.9862,1],['Vasco da Gama',15.3982,73.8113,1],['Ponda',15.4019,74.0078,1],
+  ['Pernem',15.7230,73.7960,0],['Bicholim',15.5880,73.9490,0],['Valpoi',15.5320,74.1360,0],['Quepem',15.2120,74.0780,0],['Sanguem',15.2290,74.1520,0],['Canacona',15.0110,74.0430,0],
+  ['Siolim',15.6300,73.7600,0],['Calangute',15.5440,73.7680,0],['Colva',15.2800,73.9330,0],['Old Goa',15.5009,73.9116,0]];
+const regions = [['MAHARASHTRA',15.80,74.08],['KARNATAKA',15.30,74.36],['Arabian Sea',15.30,73.66],['NORTH GOA',15.62,74.02],['SOUTH GOA',15.13,74.18]];
+const label = (t,lat,lng,cls)=>L.marker([lat,lng],{interactive:false,keyboard:false,icon:L.divIcon({className:'maplabel '+cls,html:'<span>'+t+'</span>',iconSize:[0,0]})});
+const staticBase = L.layerGroup([
+  L.geoJSON(BM,{style:bmStyle,interactive:false}),
+  ...towns.map(([t,a,b,big])=>label(t,a,b,big?'town big':'town')),
+  ...regions.map(([t,a,b])=>label(t,a,b,t==='Arabian Sea'?'sea':'region'))
+]);
+staticBase.getAttribution = ()=> 'Boundaries: <a href="https://github.com/datameet/maps">DataMeet</a> (CC BY 4.0)';
 const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'});
 const esriStreets = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors'});
 const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics'});
-osm.addTo(map);
-let osmErrors=0, osmLoaded=false;
-osm.on('tileload',()=>{osmLoaded=true;});
-osm.on('tileerror',()=>{ if(!osmLoaded && ++osmErrors>=4 && map.hasLayer(osm)){ map.removeLayer(osm); esriStreets.addTo(map); } });
-L.control.layers({'Streets':osm,'Streets (alt)':esriStreets,'Satellite':esriSat},null,{position:'topright',collapsed:true}).addTo(map);
+staticBase.addTo(map);
+L.control.layers({'Static map':staticBase,'Streets (online)':osm,'Streets alt (online)':esriStreets,'Satellite (online)':esriSat},null,{position:'topright',collapsed:true}).addTo(map);
 const hotLayer = L.layerGroup().addTo(map), listLayer = L.layerGroup().addTo(map);
 let radiusCircle=null, radius=null;
 
